@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Cuenta Corriente Bahioma</title>
+<meta name="description" content="Estado de cuenta corriente entre MAD ESTUDIO y Bahioma: cargas sociales, honorarios, cobros y saldo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=Montserrat:wght@300;700&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-40 -40 620 620'%3E%3Cg fill='none' stroke='%23111' stroke-width='34'%3E%3Cpath d='M0 540V270A270 270 0 0 1 540 270V540H270'/%3E%3Cpath d='M270 0V540'/%3E%3Cpath d='M0 270A270 270 0 0 1 270 540'/%3E%3Cpath d='M270 270A270 270 0 0 1 540 540'/%3E%3Cpath d='M0 540L190.9 349.1'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%}
+[hidden]{display:none!important}
+:root{
+  --bg:#f3f3f1;--surface:#ffffff;--surface-2:#f8f8f6;
+  --ink:#121212;--ink-2:#5a5a57;--muted:#8c8c88;--line:#e2e2df;--line-2:#cfcfcb;
+  --accent:#121212;--on-accent:#ffffff;
+  --good:#1d7a2f;--good-bg:#e7f4e9;--warn:#8a5a00;--warn-bg:#fbf0d5;--crit:#b3261e;--crit-bg:#fbe5e2;--info:#3a3a3a;--info-bg:#ececea;
+  --bar-1:#1c1c1c;--bar-2:#1c1c1c;--bar-3:#b9b9b5;--grid:#e6e6e3;--axis:#c9c9c5;
+  --shadow:0 1px 2px rgba(18,18,18,.06),0 8px 24px -12px rgba(18,18,18,.18);
+  --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-display:"Archivo","IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --font-brand:"Montserrat","Archivo",system-ui,-apple-system,sans-serif;
+  --radius:6px;color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#131312;--surface:#1c1c1b;--surface-2:#222221;
+    --ink:#f2f2ef;--ink-2:#b5b5b0;--muted:#85857f;--line:#2c2c2a;--line-2:#3a3a37;
+    --accent:#f2f2ef;--on-accent:#131312;
+    --good:#6fcf7f;--good-bg:#173d1f;--warn:#f0c060;--warn-bg:#3d2f0e;--crit:#f28b82;--crit-bg:#4a1d19;--info:#d6d6d2;--info-bg:#2e2e2c;
+    --bar-1:#e8e8e4;--bar-2:#e8e8e4;--bar-3:#5e5e5a;--grid:#2a2a28;--axis:#3d3d3a;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131312;--surface:#1c1c1b;--surface-2:#222221;
+  --ink:#f2f2ef;--ink-2:#b5b5b0;--muted:#85857f;--line:#2c2c2a;--line-2:#3a3a37;
+  --accent:#f2f2ef;--on-accent:#131312;
+  --good:#6fcf7f;--good-bg:#173d1f;--warn:#f0c060;--warn-bg:#3d2f0e;--crit:#f28b82;--crit-bg:#4a1d19;--info:#d6d6d2;--info-bg:#2e2e2c;
+  --bar-1:#e8e8e4;--bar-2:#e8e8e4;--bar-3:#5e5e5a;--grid:#2a2a28;--axis:#3d3d3a;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+#app{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:20px 48px}
+@media (max-width:640px){#app{padding-inline:16px}}
+h1,h2,h3{margin:0;font-family:var(--font-display);text-wrap:balance;letter-spacing:-.01em}
+h2{font-size:16px;font-weight:700}
+p{margin:0}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.ink2{color:var(--ink-2)}
+
+/* ---------- owner bar */
+.owner{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:16px;padding:10px 14px;border:1px dashed var(--line-2);border-radius:var(--radius);background:var(--surface-2)}
+.owner .who{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2)}
+.owner .who b{color:var(--ink);font-weight:600}
+.owner .dot{width:8px;height:8px;border-radius:50%;background:var(--good)}
+.owner .actions{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--accent);border-radius:var(--radius);background:var(--accent);color:var(--on-accent);font-weight:600;font-size:13px;cursor:pointer;line-height:1}
+.btn:hover{opacity:.9}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line-2)}
+.btn.ghost:hover{background:var(--surface)}
+.owner .status{font-size:12px;color:var(--ink-2);min-height:1em}
+.owner .status.err{color:var(--crit)}
+
+/* ---------- header */
+.head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 24px;padding-bottom:18px;border-bottom:2px solid var(--ink)}
+.brand{display:flex;align-items:center;gap:16px}
+.brand svg{width:54px;height:54px;display:block;flex:none}
+.brand .wm{font-family:var(--font-brand);font-size:21px;line-height:1;letter-spacing:.16em;white-space:nowrap;display:flex;align-items:baseline;padding-top:4px}
+.brand .wm b{font-weight:700}
+.brand .wm span{font-weight:300}
+.head .doc{text-align:right}
+.head .doc h1{font-size:22px;font-weight:700}
+.head .doc .sub{font-size:12px;color:var(--ink-2);margin-top:4px}
+@media (max-width:640px){.head .doc{text-align:left}}
+
+/* ---------- hero saldo */
+.hero{display:grid;grid-template-columns:minmax(290px,1.15fr) repeat(3,minmax(0,1fr));grid-auto-rows:auto;gap:1px;margin-top:22px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.hero .saldo{grid-row:1/span 2}
+.tile.proy{background:var(--surface-2)}
+@media (max-width:1000px){.hero{grid-template-columns:1fr 1fr}.hero .saldo{grid-column:1/-1;grid-row:auto}}
+@media (max-width:520px){.hero{grid-template-columns:1fr}}
+.hero>*{min-width:0}
+.tile{background:var(--surface);padding:16px 18px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.tile .v{font-family:var(--font-display);font-size:clamp(19px,1.8vw,23px);font-weight:700;letter-spacing:-.01em;line-height:1.1}
+.tile .s{font-size:12px;color:var(--ink-2)}
+.tile.saldo{background:var(--accent);color:var(--on-accent);padding:20px 22px;justify-content:center}
+.tile.saldo .eyebrow{color:var(--on-accent);opacity:.7}
+.tile.saldo .v{font-size:clamp(24px,2.6vw,34px);font-weight:800;margin-top:2px;overflow-wrap:anywhere}
+.tile.saldo .s{color:var(--on-accent);opacity:.8;max-width:38ch}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;line-height:1.3;white-space:nowrap}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.chip.good{color:var(--good);background:var(--good-bg)}
+.chip.warn{color:var(--warn);background:var(--warn-bg)}
+.chip.crit{color:var(--crit);background:var(--crit-bg)}
+.chip.info{color:var(--info);background:var(--info-bg)}
+.tile.saldo .chip{align-self:flex-start;margin-top:6px;background:rgba(255,255,255,.14);color:var(--on-accent)}
+:root[data-theme="dark"] .tile.saldo .chip{background:rgba(0,0,0,.18)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tile.saldo .chip{background:rgba(0,0,0,.18)}}
+
+/* ---------- sections */
+.section{margin-top:28px}
+.sec-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px;margin-bottom:10px}
+.sec-head .desc{font-size:12.5px;color:var(--ink-2)}
+.filters{display:flex;flex-wrap:wrap;gap:6px}
+.fbtn{padding:5px 11px;border:1px solid var(--line-2);border-radius:999px;background:transparent;font-size:12px;font-weight:500;cursor:pointer;color:var(--ink-2)}
+.fbtn[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);position:sticky;top:0}
+td.r,th.r{text-align:right}
+td.wrap{white-space:normal;min-width:220px}
+td.w2{white-space:normal;min-width:130px}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:var(--surface-2)}
+tr.total td{font-weight:600;background:var(--surface-2);border-top:2px solid var(--line-2)}
+td .sub{display:block;font-size:11.5px;color:var(--muted);margin-top:2px;white-space:normal}
+td.amt{font-weight:600}
+.empty{padding:22px;text-align:center;color:var(--muted);font-size:13px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+.two>*{min-width:0}
+@media (max-width:900px){.two{grid-template-columns:1fr}}
+
+/* ---------- ledger */
+.ledger td.credit{color:var(--good)}
+.ledger td.debit{color:var(--ink)}
+.ledger td.bal{font-weight:600}
+.ledger td.neg{color:var(--crit)}
+.ledger .kind{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.ledger tr.open td{background:var(--surface-2)}
+
+/* ---------- chart */
+.chart{padding:14px 16px 8px}
+.chart svg{width:100%;height:auto;display:block;font-family:var(--font-body)}
+.chart .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;font-size:12px;color:var(--ink-2)}
+.chart .legend i{display:inline-block;width:14px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:6px;background:var(--bar-1)}
+.chart .legend i.h{background:repeating-linear-gradient(45deg,var(--bar-2) 0 2px,transparent 2px 5px);border:1px solid var(--bar-2)}
+.chart .legend i.o{background:var(--bar-3)}
+.tip{position:fixed;z-index:20;pointer-events:none;background:var(--ink);color:var(--bg);padding:8px 10px;border-radius:var(--radius);font-size:12px;line-height:1.4;box-shadow:var(--shadow);max-width:240px}
+.tip b{font-weight:600}
+.tip .row{display:flex;justify-content:space-between;gap:14px}
+
+/* ---------- footer */
+.foot{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px 28px;font-size:12.5px;color:var(--ink-2)}
+.foot h3{font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--ink);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase}
+.foot p+p{margin-top:4px}
+.foot .ro{display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
+
+/* ---------- modal */
+.modal{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.45)}
+.modal .box{background:var(--surface);color:var(--ink);border-radius:8px;max-width:520px;width:100%;padding:22px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.modal h2{font-size:17px;margin-bottom:6px}
+.modal .lead{font-size:13px;color:var(--ink-2);margin-bottom:14px}
+.modal .kv{display:grid;grid-template-columns:1fr auto;gap:6px 16px;font-size:13px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface-2)}
+.modal .kv b{font-weight:600}
+.modal ul{margin:10px 0 0;padding-left:18px;font-size:12.5px;color:var(--crit)}
+.modal .btns{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.modal .warnbox{margin-top:10px;font-size:12.5px;color:var(--warn)}
+
+@media print{
+  body{background:#fff;color:#000}
+  #app{padding:0;max-width:none}
+  .owner,.filters,.tip,.modal{display:none!important}
+  .card,.hero{box-shadow:none}
+  .tile.saldo{background:#000;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  th{position:static}
+}
+@media (prefers-reduced-motion:no-preference){.btn,.fbtn{transition:background .15s,opacity .15s}}
+/* ---------- svg chart */
+.chart .grid{stroke:var(--grid);stroke-width:1}
+.chart .axis{stroke:var(--axis);stroke-width:1}
+.chart .tick{fill:var(--muted);font-size:11px}
+.chart .lbl{fill:var(--ink-2);font-size:11px;font-weight:600}
+.chart .b1{fill:var(--bar-1);stroke:var(--surface);stroke-width:2}
+.chart .b2{fill:url(#hatch);stroke:var(--surface);stroke-width:2}
+.chart .b3{fill:var(--bar-3);stroke:var(--surface);stroke-width:2}
+.chart .pf{fill:var(--bar-2)}
+.chart .bar{cursor:default;outline:none}
+.chart .bar:hover .b1,.chart .bar:focus .b1{opacity:.82}
+.chart .bar:hover .b3,.chart .bar:focus .b3{opacity:.82}
+.chart .bar:focus-visible .lbl{text-decoration:underline}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}
+@media print{.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="xlsx.full.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var XLSX_PATH = 'MAD_Bahioma_CC.xlsx';
+  var MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  var MESES_CAP = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  var MES_ALIAS = { ene: 1, feb: 2, mar: 3, abr: 4, may: 5, jun: 6, jul: 7, ago: 8, sep: 9, set: 9, sept: 9, oct: 10, nov: 11, dic: 12 };
+  var CONCEPT_LABEL = { 'do (cargas)': 'Cargas sociales (DO)', 'do': 'Cargas sociales (DO)', 'cargas': 'Cargas sociales (DO)', 'honorarios': 'Honorarios', 'otros': 'Otros' };
+  var CONCEPT_KEY = { 'do (cargas)': 'cargas', 'do': 'cargas', 'cargas': 'cargas', 'honorarios': 'honorarios' };
+
+  var app = document.getElementById('app');
+  var state = { status: 'loading', data: null, sum: null, filter: 'todos', source: 'repo', updatedAt: null, warnings: [] };
+
+  /* ------------------------------------------------------------ utils */
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function norm(s) {
+    return String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  }
+  var nf2 = new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  var nf1 = new Intl.NumberFormat('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  function money(n) {
+    if (n == null || isNaN(n)) return '—';
+    var s = '$\u00a0' + nf2.format(Math.abs(n));
+    return n < 0 ? '−' + s : s;
+  }
+  function moneyShort(n) {
+    if (n == null || isNaN(n)) return '';
+    var a = Math.abs(n), s;
+    if (a >= 1e6) s = '$ ' + nf1.format(a / 1e6) + ' M';
+    else if (a >= 1e3) s = '$ ' + Math.round(a / 1e3) + ' mil';
+    else s = '$ ' + Math.round(a);
+    return (n < 0 ? '−' : '') + s;
+  }
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function fdate(iso) {
+    if (!iso) return '—';
+    var p = iso.split('-');
+    return pad2(+p[2]) + '/' + pad2(+p[1]) + '/' + p[0];
+  }
+  function fdateLong(iso) {
+    if (!iso) return '';
+    var p = iso.split('-');
+    return (+p[2]) + ' de ' + MESES[+p[1] - 1] + ' de ' + p[0];
+  }
+  function fstamp(d) {
+    if (!d) return '';
+    return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+  function periodo(m) { return MESES_CAP[m.mes - 1] + ' ' + m.anio; }
+  function todayISO() { var d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+  function conceptLabel(c) { var k = norm(c); return CONCEPT_LABEL[k] || (c || 'Otros'); }
+  function conceptKey(c) { return CONCEPT_KEY[norm(c)] || 'otros'; }
+  function sum(arr, f) { var t = 0; for (var i = 0; i < arr.length; i++) { var v = f(arr[i]); if (v != null && !isNaN(v)) t += v; } return Math.round(t * 100) / 100; }
+
+  /* ------------------------------------------------------------ parsing */
+  function toNumber(v) {
+    if (v == null || v === '') return null;
+    if (typeof v === 'number') return isNaN(v) ? null : v;
+    var s = String(v).trim();
+    if (!s || s === '-' || s === '—') return null;
+    s = s.replace(/[$\s]/g, '').replace(/ARS/i, '');
+    if (/,\d{1,2}$/.test(s)) s = s.replace(/\./g, '').replace(',', '.');   // 1.234,56
+    else s = s.replace(/,/g, '');                                          // 1,234.56
+    var n = parseFloat(s);
+    return isNaN(n) ? null : n;
+  }
+  function serialToISO(serial) {
+    var ms = Math.round((serial - 25569) * 86400 * 1000);
+    var d = new Date(ms);
+    return d.getUTCFullYear() + '-' + pad2(d.getUTCMonth() + 1) + '-' + pad2(d.getUTCDate());
+  }
+  function toISO(v, defaultYear) {
+    if (v == null || v === '' || v === '-') return '';
+    if (v instanceof Date) return v.getFullYear() + '-' + pad2(v.getMonth() + 1) + '-' + pad2(v.getDate());
+    if (typeof v === 'number') return v > 20000 ? serialToISO(v) : '';
+    var s = String(v).trim();
+    var m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?$/);
+    if (m) {
+      var y = m[3] ? +m[3] : (defaultYear || new Date().getFullYear());
+      if (y < 100) y += 2000;
+      return y + '-' + pad2(+m[2]) + '-' + pad2(+m[1]);
+    }
+    m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return m[1] + '-' + m[2] + '-' + m[3];
+    return '';
+  }
+  function toMonth(v) {
+    if (v == null || v === '') return null;
+    if (typeof v === 'number') return v >= 1 && v <= 12 ? v : null;
+    var s = norm(v);
+    var i = MESES.indexOf(s);
+    if (i >= 0) return i + 1;
+    var k = s.slice(0, 4);
+    if (MES_ALIAS[k]) return MES_ALIAS[k];
+    k = s.slice(0, 3);
+    return MES_ALIAS[k] || null;
+  }
+  function findSheet(wb, name) {
+    var want = norm(name);
+    for (var i = 0; i < wb.SheetNames.length; i++) if (norm(wb.SheetNames[i]) === want) return wb.Sheets[wb.SheetNames[i]];
+    for (i = 0; i < wb.SheetNames.length; i++) if (norm(wb.SheetNames[i]).indexOf(want) >= 0) return wb.Sheets[wb.SheetNames[i]];
+    return null;
+  }
+  function headerMap(rows, required) {
+    for (var r = 0; r < Math.min(rows.length, 15); r++) {
+      var cells = rows[r].map(norm), ok = true;
+      for (var i = 0; i < required.length; i++) if (cells.indexOf(required[i]) < 0) { ok = false; break; }
+      if (ok) {
+        var map = {};
+        cells.forEach(function (c, idx) { if (c && map[c] == null) map[c] = idx; });
+        return { row: r, map: map };
+      }
+    }
+    return null;
+  }
+  function pick(map, names) {
+    for (var i = 0; i < names.length; i++) if (map[names[i]] != null) return map[names[i]];
+    var keys = Object.keys(map);
+    for (i = 0; i < names.length; i++) for (var k = 0; k < keys.length; k++) if (keys[k].indexOf(names[i]) === 0) return map[keys[k]];
+    return -1;
+  }
+  function cell(row, idx) { return idx >= 0 && idx < row.length ? row[idx] : null; }
+  function txt(v) { return v == null ? '' : String(v).trim(); }
+  function isBlank(row, idxs) {
+    for (var i = 0; i < idxs.length; i++) { var v = cell(row, idxs[i]); if (v != null && String(v).trim() !== '') return false; }
+    return true;
+  }
+
+  function parseWorkbook(wb) {
+    var warnings = [], movimientos = [], cobros = [];
+    var wsM = findSheet(wb, 'Movimientos'), wsC = findSheet(wb, 'Cobros');
+    if (!wsM) throw new Error('La planilla no tiene una hoja "Movimientos".');
+    if (!wsC) throw new Error('La planilla no tiene una hoja "Cobros".');
+
+    var rows = XLSX.utils.sheet_to_json(wsM, { header: 1, defval: null, raw: true });
+    var h = headerMap(rows, ['mes', 'concepto', 'importe']);
+    if (!h) throw new Error('En "Movimientos" no encuentro la fila de encabezados (Mes, Concepto, Importe).');
+    var c = {
+      anio: pick(h.map, ['ano', 'anio', 'year']), mes: pick(h.map, ['mes']), concepto: pick(h.map, ['concepto']),
+      venc: pick(h.map, ['vencimiento', 'vence']), fact: pick(h.map, ['factura n', 'factura', 'fctura num.', 'fctura']),
+      neto: pick(h.map, ['neto']), iva: pick(h.map, ['iva']), importe: pick(h.map, ['importe', 'total']),
+      forma: pick(h.map, ['forma de pago', 'forma', 'transf/efvo', 'pago']), estado: pick(h.map, ['estado']),
+      fpago: pick(h.map, ['fecha de pago', 'fecha pago', 'pagado el']), obs: pick(h.map, ['observaciones', 'obs', 'nota'])
+    };
+    var lastYear = new Date().getFullYear();
+    for (var r = h.row + 1; r < rows.length; r++) {
+      var row = rows[r];
+      if (!row || isBlank(row, [c.mes, c.concepto, c.neto, c.importe])) continue;
+      var mes = toMonth(cell(row, c.mes));
+      var anioRaw = toNumber(cell(row, c.anio));
+      var anio = anioRaw && anioRaw > 1990 ? Math.round(anioRaw) : lastYear;
+      if (anioRaw && anioRaw > 1990) lastYear = anio;
+      if (!mes) { warnings.push('Movimientos, fila ' + (r + 1) + ': no reconozco el mes "' + txt(cell(row, c.mes)) + '"; la fila se omite.'); continue; }
+      var neto = toNumber(cell(row, c.neto)), iva = toNumber(cell(row, c.iva)), importe = toNumber(cell(row, c.importe));
+      if (importe == null && (neto != null || iva != null)) importe = Math.round(((neto || 0) + (iva || 0)) * 100) / 100;
+      if (importe === 0 && neto == null) importe = null;
+      var estadoRaw = norm(cell(row, c.estado)), fpago = toISO(cell(row, c.fpago), anio), estado;
+      if (estadoRaw.indexOf('sald') === 0 || estadoRaw.indexOf('pag') === 0 || estadoRaw.indexOf('cobr') === 0) estado = 'Saldado';
+      else if (estadoRaw.indexOf('pend') === 0) estado = 'Pendiente';
+      else estado = fpago ? 'Saldado' : 'Pendiente';
+      var formaRaw = norm(cell(row, c.forma)), forma = '';
+      if (formaRaw === 'cc' || formaRaw.indexOf('cuenta') === 0 || formaRaw.indexOf('cheq') >= 0) forma = 'CC';
+      else if (formaRaw.indexOf('transf') === 0) forma = 'Transferencia';
+      else if (formaRaw.indexOf('efe') === 0 || formaRaw === 'efvo') forma = 'Efectivo';
+      else if (formaRaw) forma = txt(cell(row, c.forma));
+      if (estado === 'Saldado' && !forma) warnings.push('Movimientos, fila ' + (r + 1) + ': está Saldado pero sin Forma de pago; no se descuenta de la cuenta corriente.');
+      movimientos.push({
+        anio: anio, mes: mes, concepto: txt(cell(row, c.concepto)) || 'Otros', vencimiento: txt(cell(row, c.venc)),
+        factura: c.fact >= 0 && cell(row, c.fact) != null && txt(cell(row, c.fact)) !== '-' ? txt(cell(row, c.fact)) : '',
+        neto: neto, iva: iva, importe: importe, forma: forma, estado: estado, fechaPago: fpago, obs: txt(cell(row, c.obs))
+      });
+    }
+
+    rows = XLSX.utils.sheet_to_json(wsC, { header: 1, defval: null, raw: true });
+    h = headerMap(rows, ['banco', 'importe']);
+    if (!h) throw new Error('En "Cobros" no encuentro la fila de encabezados (Banco, Importe).');
+    var k = {
+      fecha: pick(h.map, ['fecha']), banco: pick(h.map, ['banco']), tipo: pick(h.map, ['tipo']), numero: pick(h.map, ['numero', 'num', 'n']),
+      fcobro: pick(h.map, ['fecha de cobro', 'fecha cobro', 'cobro']), importe: pick(h.map, ['importe']),
+      imp: pick(h.map, ['imp. al cheque', 'imp al cheque', 'impuesto', 'imp']), estado: pick(h.map, ['estado', 'entrada']), obs: pick(h.map, ['observaciones', 'obs'])
+    };
+    for (r = h.row + 1; r < rows.length; r++) {
+      row = rows[r];
+      if (!row || isBlank(row, [k.fecha, k.banco, k.importe])) continue;
+      var imp = toNumber(cell(row, k.importe));
+      if (imp == null) { warnings.push('Cobros, fila ' + (r + 1) + ': sin importe; la fila se omite.'); continue; }
+      var fecha = toISO(cell(row, k.fecha)), fcobro = toISO(cell(row, k.fcobro));
+      var est = norm(cell(row, k.estado)), estadoC;
+      if (est.indexOf('cobr') === 0 || est.indexOf('acred') === 0) estadoC = 'Cobrado';
+      else if (est.indexOf('cart') >= 0 || est.indexOf('pend') === 0 || est.indexOf('depos') === 0) estadoC = 'En cartera';
+      else if (est.indexOf('rech') === 0 || est.indexOf('anul') === 0) estadoC = 'Rechazado';
+      else estadoC = fcobro ? 'Cobrado' : 'En cartera';
+      var numRaw = cell(row, k.numero);
+      cobros.push({
+        fecha: fecha, banco: txt(cell(row, k.banco)), tipo: txt(cell(row, k.tipo)) || 'Cheque',
+        numero: numRaw == null ? '' : (typeof numRaw === 'number' ? String(Math.round(numRaw)) : txt(numRaw)),
+        fechaCobro: fcobro, importe: imp, impCheque: toNumber(cell(row, k.imp)), estado: estadoC, obs: txt(cell(row, k.obs))
+      });
+    }
+    var modified = wb.Props && wb.Props.ModifiedDate instanceof Date && !isNaN(wb.Props.ModifiedDate) ? wb.Props.ModifiedDate : null;
+    return { movimientos: movimientos, cobros: cobros, warnings: warnings, modified: modified };
+  }
+
+  /* ------------------------------------------------------------ compute */
+  function compute(d) {
+    var M = d.movimientos, C = d.cobros;
+    var cobradoL = C.filter(function (c) { return c.estado === 'Cobrado'; });
+    var carteraL = C.filter(function (c) { return c.estado === 'En cartera'; });
+    var aplicadosL = M.filter(function (m) { return m.forma === 'CC' && m.estado === 'Saldado'; });
+    var aparteL = M.filter(function (m) { return m.estado === 'Saldado' && m.forma !== 'CC'; });
+    var pendientes = M.filter(function (m) { return m.estado === 'Pendiente'; });
+    var s = {
+      cobrado: sum(cobradoL, function (c) { return c.importe; }), nCobrado: cobradoL.length,
+      enCartera: sum(carteraL, function (c) { return c.importe; }), nCartera: carteraL.length,
+      aplicadoCC: sum(aplicadosL, function (m) { return m.importe; }), nAplicados: aplicadosL.length,
+      pagadoAparte: sum(aparteL, function (m) { return m.importe; }), nAparte: aparteL.length,
+      pendSum: sum(pendientes, function (m) { return m.importe; }),
+      pendSinMonto: pendientes.filter(function (m) { return m.importe == null; }).length,
+      pendientes: pendientes, iva: sum(M, function (m) { return m.iva; }),
+      impCheque: sum(C, function (c) { return c.impCheque; })
+    };
+    s.saldo = Math.round((s.cobrado - s.aplicadoCC) * 100) / 100;
+    s.proyectado = Math.round((s.saldo + s.enCartera - s.pendSum) * 100) / 100;
+    var hoy = todayISO();
+    s.cartera = carteraL.slice().sort(function (a, b) { return (a.fechaCobro || a.fecha || '') < (b.fechaCobro || b.fecha || '') ? -1 : 1; });
+    s.carteraVencidos = s.cartera.filter(function (c) { return c.fechaCobro && c.fechaCobro <= hoy; }).length;
+
+    var entries = [];
+    cobradoL.forEach(function (c) {
+      entries.push({ fecha: c.fechaCobro || c.fecha, kind: 'credito', detalle: c.tipo + (c.banco ? ' ' + c.banco : '') + (c.numero ? ' Nº ' + c.numero : ''), sub: c.fecha && c.fechaCobro && c.fecha !== c.fechaCobro ? 'Emitido el ' + fdate(c.fecha) : '', monto: c.importe });
+    });
+    aplicadosL.forEach(function (m) {
+      entries.push({ fecha: m.fechaPago, kind: 'debito', detalle: conceptLabel(m.concepto) + ' · ' + periodo(m), sub: m.vencimiento ? 'Venc. ' + m.vencimiento : '', monto: m.importe });
+    });
+    entries.sort(function (a, b) {
+      var fa = a.fecha || '9999', fb = b.fecha || '9999';
+      if (fa !== fb) return fa < fb ? -1 : 1;
+      return a.kind === b.kind ? 0 : (a.kind === 'credito' ? -1 : 1);
+    });
+    var bal = 0;
+    entries.forEach(function (e) { bal = Math.round((bal + (e.kind === 'credito' ? e.monto : -e.monto)) * 100) / 100; e.saldo = bal; });
+    s.ledger = entries;
+
+    var byMonth = {};
+    M.forEach(function (m) {
+      if (m.importe == null) return;
+      var key = m.anio + '-' + pad2(m.mes);
+      if (!byMonth[key]) byMonth[key] = { key: key, anio: m.anio, mes: m.mes, cargas: 0, honorarios: 0, otros: 0, total: 0 };
+      var ck = conceptKey(m.concepto);
+      byMonth[key][ck] += m.importe;
+      byMonth[key].total += m.importe;
+    });
+    s.monthly = Object.keys(byMonth).sort().map(function (k) { return byMonth[k]; });
+    return s;
+  }
+
+  /* ------------------------------------------------------------ render */
+  /* Isologo MAD ESTUDIO: arco de medio punto con sus divisiones internas (trazado vectorial del logo institucional). */
+  var LOGO = '<svg viewBox="-12 -12 564 564" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="13" stroke-linecap="butt" stroke-linejoin="miter">' +
+    '<path d="M0 540V270A270 270 0 0 1 540 270V540H270"/>' +
+    '<path d="M270 0V540"/>' +
+    '<path d="M0 270A270 270 0 0 1 270 540"/>' +
+    '<path d="M270 270A270 270 0 0 1 540 540"/>' +
+    '<path d="M0 540L190.9 349.1"/>' +
+    '</g></svg>';
+
+  function chipEstado(estado) {
+    if (estado === 'Saldado' || estado === 'Cobrado') return '<span class="chip good">' + estado + '</span>';
+    if (estado === 'Pendiente' || estado === 'En cartera') return '<span class="chip warn">' + estado + '</span>';
+    if (estado === 'Rechazado') return '<span class="chip crit">' + estado + '</span>';
+    return '<span class="chip info">' + esc(estado) + '</span>';
+  }
+  function formaLabel(f) { return f === 'CC' ? 'Cuenta corriente' : (f || '—'); }
+
+  function renderHead(d) {
+    var stamp = state.updatedAt ? fstamp(state.updatedAt) : '';
+    var src = state.source === 'local' ? '<span class="chip info" style="margin-left:8px">Vista previa local</span>' : '';
+    return '<header class="head">' +
+      '<div class="brand">' + LOGO + '<div class="wm"><b>MAD</b><span>ESTUDIO</span></div></div>' +
+      '<div class="doc"><h1>Estado de cuenta · Bahioma</h1>' +
+      '<p class="sub">Servicio de personal · cargas sociales y honorarios' + (stamp ? ' · planilla actualizada el ' + esc(stamp) : '') + src + '</p></div>' +
+      '</header>';
+  }
+
+  function renderHero(s) {
+    var chip, sub;
+    if (s.saldo < 0) { chip = '<span class="chip">A favor de MAD ESTUDIO</span>'; sub = 'Bahioma debe este monto: lo aplicado a la cuenta supera lo cobrado hasta ahora.'; }
+    else if (s.saldo > 0) { chip = '<span class="chip">A favor de Bahioma</span>'; sub = 'Crédito disponible para descontar de los próximos vencimientos.'; }
+    else { chip = '<span class="chip">Cuenta al día</span>'; sub = 'Lo cobrado y lo aplicado coinciden.'; }
+    var pendSub = s.pendSinMonto ? (s.pendSinMonto === 1 ? '+ 1 movimiento con monto a definir' : '+ ' + s.pendSinMonto + ' movimientos con monto a definir') : (s.pendientes.length ? plural(s.pendientes.length, 'movimiento', 'movimientos') : 'Sin vencimientos abiertos');
+    var next = s.pendientes.length && s.pendientes[0].vencimiento ? 'Próximo: ' + esc(s.pendientes[0].vencimiento) : '';
+    var cartSub = s.nCartera ? plural(s.nCartera, 'cheque en cartera', 'cheques en cartera') + (s.carteraVencidos ? ' · ' + s.carteraVencidos + ' con fecha de cobro cumplida, a confirmar' : (s.cartera[0] && s.cartera[0].fechaCobro ? ' · próximo cobro ' + fdate(s.cartera[0].fechaCobro) : '')) : 'Sin cheques pendientes de acreditar';
+    var proySub = (s.nCartera || s.pendientes.length) ? 'Si se acreditan los cheques en cartera y se descuentan los pendientes' + (s.pendSinMonto ? ' con monto' : '') : 'Sin cheques ni vencimientos abiertos';
+    return '<section class="hero" aria-label="Resumen">' +
+      '<div class="tile saldo"><span class="eyebrow">Saldo de cuenta corriente</span><span class="v num">' + money(s.saldo) + '</span>' + chip + '<span class="s">' + sub + '</span></div>' +
+      '<div class="tile"><span class="eyebrow">Cobrado a Bahioma</span><span class="v num">' + money(s.cobrado) + '</span><span class="s">' + plural(s.nCobrado, 'cobro acreditado', 'cobros acreditados') + '</span></div>' +
+      '<div class="tile"><span class="eyebrow">Por acreditar</span><span class="v num">' + money(s.enCartera) + '</span><span class="s">' + cartSub + '</span></div>' +
+      '<div class="tile"><span class="eyebrow">Aplicado a la cuenta</span><span class="v num">' + money(s.aplicadoCC) + '</span><span class="s">' + plural(s.nAplicados, 'movimiento descontado', 'movimientos descontados') + ' del crédito</span></div>' +
+      '<div class="tile"><span class="eyebrow">Pagado aparte</span><span class="v num">' + money(s.pagadoAparte) + '</span><span class="s">' + (s.nAparte ? plural(s.nAparte, 'pago por transferencia o efectivo', 'pagos por transferencia o efectivo') : 'Sin pagos fuera de la cuenta') + '</span></div>' +
+      '<div class="tile"><span class="eyebrow">Pendiente de pago</span><span class="v num">' + (s.pendSum > 0 ? money(s.pendSum) : (s.pendSinMonto ? 'a definir' : money(0))) + '</span><span class="s">' + pendSub + (next ? ' · ' + next : '') + '</span></div>' +
+      '<div class="tile proy"><span class="eyebrow">Saldo proyectado</span><span class="v num">' + money(s.proyectado) + '</span><span class="s">' + proySub + '</span></div>' +
+      '</section>';
+  }
+
+  function renderMovimientos(d) {
+    var f = state.filter;
+    var list = d.movimientos.slice().sort(function (a, b) { return (a.anio - b.anio) || (a.mes - b.mes) || conceptKey(a.concepto).localeCompare(conceptKey(b.concepto)); });
+    if (f === 'pendientes') list = list.filter(function (m) { return m.estado === 'Pendiente'; });
+    if (f === 'saldados') list = list.filter(function (m) { return m.estado === 'Saldado'; });
+    var rows = list.map(function (m) {
+      var pago = m.estado === 'Saldado' ? esc(formaLabel(m.forma)) + (m.fechaPago ? '<span class="sub">' + fdate(m.fechaPago) + '</span>' : '') : '<span class="muted">—</span>';
+      var imp = m.importe == null ? '<span class="muted">a definir</span>' : money(m.importe);
+      return '<tr>' +
+        '<td><b>' + esc(periodo(m)) + '</b></td>' +
+        '<td class="w2">' + esc(conceptLabel(m.concepto)) + (m.obs ? '<span class="sub">' + esc(m.obs) + '</span>' : '') + '</td>' +
+        '<td class="w2">' + (m.vencimiento ? esc(m.vencimiento) : '<span class="muted">—</span>') + '</td>' +
+        '<td class="r num">' + (m.factura ? 'Nº ' + esc(m.factura) : '<span class="muted">—</span>') + '</td>' +
+        '<td class="r num">' + (m.neto == null ? '<span class="muted">—</span>' : money(m.neto)) + '</td>' +
+        '<td class="r num">' + (m.iva == null ? '<span class="muted">—</span>' : money(m.iva)) + '</td>' +
+        '<td class="r num amt">' + imp + '</td>' +
+        '<td>' + pago + '</td>' +
+        '<td>' + chipEstado(m.estado) + '</td>' +
+        '</tr>';
+    }).join('');
+    var tot = sum(list, function (m) { return m.importe; });
+    var totRow = list.length ? '<tr class="total"><td colspan="4">Total ' + (f === 'todos' ? 'de movimientos' : f) + '</td><td class="r num">' + money(sum(list, function (m) { return m.neto; })) + '</td><td class="r num">' + money(sum(list, function (m) { return m.iva; })) + '</td><td class="r num">' + money(tot) + '</td><td colspan="2"></td></tr>' : '';
+    var fb = function (key, label) { return '<button type="button" class="fbtn" data-filter="' + key + '" aria-pressed="' + (f === key) + '">' + label + '</button>'; };
+    return '<section class="section" aria-labelledby="h-mov">' +
+      '<div class="sec-head"><div><h2 id="h-mov">Movimientos</h2><p class="desc">Lo que MAD ESTUDIO le traslada a Bahioma, mes por mes. Las cargas sociales se pagan del 1 al 10 del mes siguiente.</p></div>' +
+      '<div class="filters" role="group" aria-label="Filtrar">' + fb('todos', 'Todos') + fb('pendientes', 'Pendientes') + fb('saldados', 'Saldados') + '</div></div>' +
+      '<div class="card"><div class="tbl-wrap"><table><thead><tr><th>Período</th><th>Concepto</th><th>Vencimiento</th><th class="r">Factura</th><th class="r">Neto</th><th class="r">IVA</th><th class="r">Importe</th><th>Pago</th><th>Estado</th></tr></thead>' +
+      '<tbody>' + (rows || '<tr><td colspan="9" class="empty">No hay movimientos ' + (f === 'todos' ? 'cargados' : f) + '.</td></tr>') + totRow + '</tbody></table></div></div></section>';
+  }
+
+  function renderLedger(s) {
+    var rows = s.ledger.map(function (e) {
+      return '<tr>' +
+        '<td class="num">' + fdate(e.fecha) + '</td>' +
+        '<td class="wrap"><span class="kind">' + (e.kind === 'credito' ? 'Cobro' : 'Aplicado') + '</span><br>' + esc(e.detalle) + (e.sub ? '<span class="sub">' + esc(e.sub) + '</span>' : '') + '</td>' +
+        '<td class="r num credit">' + (e.kind === 'credito' ? money(e.monto) : '') + '</td>' +
+        '<td class="r num debit">' + (e.kind === 'debito' ? money(e.monto) : '') + '</td>' +
+        '<td class="r num bal' + (e.saldo < 0 ? ' neg' : '') + '">' + money(e.saldo) + '</td>' +
+        '</tr>';
+    }).join('');
+    var hoy = todayISO(), running = s.saldo;
+    var cart = s.cartera.map(function (c) {
+      var vencido = c.fechaCobro && c.fechaCobro <= hoy;
+      running = Math.round((running + c.importe) * 100) / 100;
+      return '<tr class="open">' +
+        '<td class="num muted">' + fdate(c.fechaCobro || c.fecha) + '</td>' +
+        '<td class="wrap"><span class="kind">Por acreditar</span><br>' + esc(c.tipo) + (c.banco ? ' ' + esc(c.banco) : '') + (c.numero ? ' Nº ' + esc(c.numero) : '') + '<span class="sub">' + (vencido ? 'Fecha de cobro cumplida · acreditación a confirmar' : 'Cobra el ' + fdate(c.fechaCobro)) + '</span></td>' +
+        '<td class="r num muted">' + money(c.importe) + '</td>' +
+        '<td></td>' +
+        '<td class="r num muted">' + money(running) + '</td>' +
+        '</tr>';
+    }).join('');
+    var pend = s.pendientes.map(function (m) {
+      if (m.importe != null) running = Math.round((running - m.importe) * 100) / 100;
+      return '<tr class="open">' +
+        '<td class="num muted">' + (m.vencimiento ? esc(m.vencimiento) : '—') + '</td>' +
+        '<td class="wrap"><span class="kind">Pendiente</span><br>' + esc(conceptLabel(m.concepto)) + ' · ' + esc(periodo(m)) + (m.obs ? '<span class="sub">' + esc(m.obs) + '</span>' : '') + '</td>' +
+        '<td></td>' +
+        '<td class="r num muted">' + (m.importe == null ? 'a definir' : money(m.importe)) + '</td>' +
+        '<td class="r num muted">' + (m.importe == null ? '' : money(running)) + '</td>' +
+        '</tr>';
+    }).join('');
+    var actual = '<tr class="total"><td colspan="4">Saldo actual de la cuenta corriente</td><td class="r num' + (s.saldo < 0 ? ' neg' : '') + '">' + money(s.saldo) + '</td></tr>';
+    var proy = (cart || pend) ? '<tr class="total"><td colspan="4">Saldo proyectado <span class="muted">(cheques en cartera acreditados y pendientes descontados' + (s.pendSinMonto ? ', sin contar los "a definir"' : '') + ')</span></td><td class="r num' + (s.proyectado < 0 ? ' neg' : '') + '">' + money(s.proyectado) + '</td></tr>' : '';
+    return '<section class="section" aria-labelledby="h-cc">' +
+      '<div class="sec-head"><div><h2 id="h-cc">Cuenta corriente</h2><p class="desc">Entra lo cobrado; se descuenta cada movimiento saldado con cuenta corriente. Los pagos por transferencia o efectivo no pasan por acá. En gris, lo que todavía no impacta: cheques por acreditar y vencimientos pendientes.</p></div></div>' +
+      '<div class="card ledger"><div class="tbl-wrap"><table><thead><tr><th>Fecha</th><th>Detalle</th><th class="r">Crédito</th><th class="r">Débito</th><th class="r">Saldo</th></tr></thead>' +
+      '<tbody>' + (rows || '<tr><td colspan="5" class="empty">Todavía no hay cobros ni movimientos aplicados.</td></tr>') + actual + cart + pend + proy + '</tbody></table></div></div></section>';
+  }
+
+  function renderCobros(d) {
+    var list = d.cobros.slice().sort(function (a, b) { return (a.fecha || '') < (b.fecha || '') ? -1 : 1; });
+    var rows = list.map(function (c) {
+      return '<tr>' +
+        '<td class="num">' + fdate(c.fecha) + '</td>' +
+        '<td>' + esc(c.tipo) + (c.banco ? ' ' + esc(c.banco) : '') + (c.numero ? '<span class="sub">Nº ' + esc(c.numero) + '</span>' : '') + (c.obs ? '<span class="sub">' + esc(c.obs) + '</span>' : '') + '</td>' +
+        '<td class="num">' + fdate(c.fechaCobro) + '</td>' +
+        '<td class="r num amt">' + money(c.importe) + (c.impCheque != null ? '<span class="sub">Imp. cheque ' + money(c.impCheque) + '</span>' : '') + '</td>' +
+        '<td>' + chipEstado(c.estado) + (c.estado === 'En cartera' && c.fechaCobro && c.fechaCobro <= todayISO() ? '<span class="sub">a confirmar</span>' : '') + '</td>' +
+        '</tr>';
+    }).join('');
+    var tot = list.length ? '<tr class="total"><td colspan="3">Total acreditado</td><td class="r num">' + money(sum(list.filter(function (c) { return c.estado === 'Cobrado'; }), function (c) { return c.importe; })) + '</td><td></td></tr>' : '';
+    return '<section class="section" aria-labelledby="h-cob">' +
+      '<div class="sec-head"><div><h2 id="h-cob">Cobros recibidos</h2><p class="desc">Cheques, eCheqs y transferencias de Bahioma. El impuesto al cheque, cuando se informa, no se descuenta del crédito.</p></div></div>' +
+      '<div class="card"><div class="tbl-wrap"><table><thead><tr><th>Emisión</th><th>Instrumento</th><th>Acreditado</th><th class="r">Importe</th><th>Estado</th></tr></thead>' +
+      '<tbody>' + (rows || '<tr><td colspan="5" class="empty">No hay cobros cargados.</td></tr>') + tot + '</tbody></table></div></div></section>';
+  }
+
+  function niceMax(v) {
+    if (v <= 0) return 1;
+    var p = Math.pow(10, Math.floor(Math.log10(v)));
+    var steps = [1, 2, 2.5, 5, 10];
+    for (var i = 0; i < steps.length; i++) if (v <= steps[i] * p) return steps[i] * p;
+    return 10 * p;
+  }
+  function renderChart(s) {
+    var data = s.monthly;
+    var W = 640, H = 230, padL = 58, padR = 12, padT = 26, padB = 30;
+    var iw = W - padL - padR, ih = H - padT - padB;
+    var raw = Math.max.apply(null, data.map(function (m) { return m.total; }).concat([0]));
+    var step = niceMax(raw / 4 || 1), ticks = Math.max(1, Math.ceil(raw / step)), max = step * ticks, svg = '';
+    svg += '<defs><pattern id="hatch" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)"><rect width="2" height="5" class="pf"/></pattern></defs>';
+    for (var t = 0; t <= ticks; t++) {
+      var y = padT + ih - (ih * t / ticks), v = max * t / ticks;
+      svg += '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + y + '" y2="' + y + '" class="' + (t === 0 ? 'axis' : 'grid') + '"/>';
+      svg += '<text x="' + (padL - 8) + '" y="' + (y + 4) + '" text-anchor="end" class="tick">' + esc(moneyShort(v)) + '</text>';
+    }
+    var n = Math.max(data.length, 1), slot = iw / n, bw = Math.min(56, slot * 0.58);
+    data.forEach(function (m, i) {
+      var cx = padL + slot * i + slot / 2, x = cx - bw / 2, y0 = padT + ih, segs = [['cargas', 'b1'], ['honorarios', 'b2'], ['otros', 'b3']];
+      svg += '<g class="bar" data-i="' + i + '" tabindex="0" role="img" aria-label="' + esc(MESES_CAP[m.mes - 1] + ' ' + m.anio + ': ' + money(m.total)) + '">';
+      svg += '<rect x="' + (padL + slot * i) + '" y="' + padT + '" width="' + slot + '" height="' + ih + '" fill="transparent"/>';
+      segs.forEach(function (sg) {
+        var val = m[sg[0]]; if (!val) return;
+        var hgt = ih * val / max; y0 -= hgt;
+        svg += '<rect x="' + x.toFixed(1) + '" y="' + y0.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hgt.toFixed(1) + '" class="' + sg[1] + '"/>';
+      });
+      svg += '<text x="' + cx + '" y="' + (y0 - 6).toFixed(1) + '" text-anchor="middle" class="lbl">' + esc(moneyShort(m.total)) + '</text>';
+      svg += '<text x="' + cx + '" y="' + (H - 10) + '" text-anchor="middle" class="tick">' + MESES_CAP[m.mes - 1].slice(0, 3) + (data.length && (i === 0 || m.anio !== data[i - 1].anio) ? ' ' + String(m.anio).slice(2) : '') + '</text>';
+      svg += '</g>';
+    });
+    var body = data.length ? '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Costo mensual por concepto">' + svg + '</svg>' +
+      '<div class="legend"><span><i></i>Cargas sociales (DO)</span><span><i class="h"></i>Honorarios</span>' + (data.some(function (m) { return m.otros; }) ? '<span><i class="o"></i>Otros</span>' : '') + '</div>'
+      : '<div class="empty">Sin montos para graficar.</div>';
+    return '<section class="section" aria-labelledby="h-ch">' +
+      '<div class="sec-head"><div><h2 id="h-ch">Costo mensual</h2><p class="desc">Importe trasladado por mes de servicio, según concepto.</p></div></div>' +
+      '<div class="card chart">' + body + '</div></section>';
+  }
+
+  function renderFoot() {
+    return '<footer class="foot">' +
+      '<div><h3>Cómo se lee</h3><p>Cada cheque o transferencia que MAD ESTUDIO cobra entra como crédito en la cuenta corriente. Cada movimiento saldado con cuenta corriente se descuenta de ese crédito.</p><p>Saldo positivo: Bahioma tiene plata a favor. Saldo negativo: Bahioma le debe ese monto a MAD ESTUDIO.</p></div>' +
+      '<div><h3>Vencimientos</h3><p>Las cargas sociales se abonan del 1 al 10 del mes siguiente al del servicio. Los honorarios, según lo acordado en cada período.</p><p>Cuando un movimiento se factura, el IVA se suma al importe a pagar.</p></div>' +
+      '<div><h3>Datos</h3><p>Fuente: planilla de MAD ESTUDIO (<code>' + esc(XLSX_PATH) + '</code>). Esta vista es de solo lectura; se actualiza cuando MAD ESTUDIO publica una planilla nueva.</p><p class="ro">● Solo lectura</p></div>' +
+      '</footer>';
+  }
+
+  function renderLoading() {
+    return renderHead(null) + '<section class="section"><div class="card"><div class="empty">Cargando la planilla…</div></div></section>';
+  }
+  function renderError(msg) {
+    return renderHead(null) +
+      '<section class="section"><div class="card" style="padding:22px">' +
+      '<h2 style="margin-bottom:6px">No se pudo leer la planilla</h2>' +
+      '<p class="ink2" style="font-size:13px;margin-bottom:14px">' + esc(msg) + '</p>' +
+      '<p class="ink2" style="font-size:13px;margin-bottom:10px">Si estás viendo este archivo en tu computadora, podés previsualizar con la planilla local:</p>' +
+      '<label class="btn ghost" for="file-local" style="cursor:pointer">Elegir planilla (.xlsx)</label>' +
+      '<input id="file-local" type="file" accept=".xlsx,.xlsm,.xls" hidden>' +
+      '</div></section>';
+  }
+
+  function render() {
+    if (state.status === 'loading') { app.innerHTML = renderLoading(); return; }
+    if (state.status === 'error') { app.innerHTML = renderError(state.error); wireLocal(); return; }
+    var d = state.data, s = state.sum;
+    var warn = state.warnings.length ? '<section class="section" style="margin-top:14px"><div class="card" style="padding:12px 16px;font-size:12.5px;color:var(--warn)"><b>Avisos de la planilla:</b><ul style="margin:6px 0 0;padding-left:18px">' + state.warnings.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul></div></section>' : '';
+    app.innerHTML = renderHead(d) + (state.source === 'local' ? warn : '') + renderHero(s) + renderMovimientos(d) + renderLedger(s) +
+      '<div class="two">' + renderCobros(d) + renderChart(s) + '</div>' + renderFoot();
+    wire();
+  }
+
+  /* ------------------------------------------------------------ interaction */
+  var tip = null;
+  function showTip(html, x, y) {
+    if (!tip) { tip = document.createElement('div'); tip.className = 'tip'; document.body.appendChild(tip); }
+    tip.innerHTML = html; tip.hidden = false;
+    var w = tip.offsetWidth, h = tip.offsetHeight, vw = window.innerWidth, vh = window.innerHeight;
+    var left = x + 14, top = y + 14;
+    if (left + w > vw - 8) left = x - w - 14;
+    if (top + h > vh - 8) top = y - h - 14;
+    tip.style.left = Math.max(8, left) + 'px'; tip.style.top = Math.max(8, top) + 'px';
+  }
+  function hideTip() { if (tip) tip.hidden = true; }
+
+  function wire() {
+    app.querySelectorAll('.fbtn').forEach(function (b) {
+      b.addEventListener('click', function () { state.filter = b.getAttribute('data-filter'); render(); });
+    });
+    var s = state.sum;
+    app.querySelectorAll('.bar').forEach(function (g) {
+      var m = s.monthly[+g.getAttribute('data-i')];
+      var html = '<b>' + esc(MESES_CAP[m.mes - 1] + ' ' + m.anio) + '</b>' +
+        (m.cargas ? '<div class="row"><span>Cargas sociales</span><span>' + money(m.cargas) + '</span></div>' : '') +
+        (m.honorarios ? '<div class="row"><span>Honorarios</span><span>' + money(m.honorarios) + '</span></div>' : '') +
+        (m.otros ? '<div class="row"><span>Otros</span><span>' + money(m.otros) + '</span></div>' : '') +
+        '<div class="row"><b>Total</b><b>' + money(m.total) + '</b></div>';
+      g.addEventListener('mousemove', function (e) { showTip(html, e.clientX, e.clientY); });
+      g.addEventListener('mouseleave', hideTip);
+      g.addEventListener('focus', function () { var r = g.getBoundingClientRect(); showTip(html, r.left + r.width / 2, r.top); });
+      g.addEventListener('blur', hideTip);
+      g.addEventListener('touchstart', function (e) { var t = e.touches[0]; showTip(html, t.clientX, t.clientY); }, { passive: true });
+    });
+    document.addEventListener('touchstart', function (e) { if (!e.target.closest('.bar')) hideTip(); }, { passive: true });
+  }
+  function wireLocal() {
+    var inp = document.getElementById('file-local');
+    if (!inp) return;
+    inp.addEventListener('change', function () {
+      var f = inp.files && inp.files[0]; if (!f) return;
+      var fr = new FileReader();
+      fr.onload = function () { try { applyWorkbook(XLSX.read(new Uint8Array(fr.result), { type: 'array' }), 'local', new Date(f.lastModified)); } catch (e) { state.status = 'error'; state.error = e.message; render(); } };
+      fr.readAsArrayBuffer(f);
+    });
+  }
+
+  /* ------------------------------------------------------------ load */
+  function applyWorkbook(wb, source, fallbackDate) {
+    var parsed = parseWorkbook(wb);
+    state.data = { movimientos: parsed.movimientos, cobros: parsed.cobros };
+    state.sum = compute(state.data);
+    state.warnings = parsed.warnings;
+    state.source = source;
+    if (parsed.warnings.length && window.console) console.warn('Avisos de la planilla:\n' + parsed.warnings.join('\n'));
+    state.updatedAt = parsed.modified || fallbackDate || null;
+    state.status = 'ready';
+    document.title = 'Cuenta Corriente Bahioma';
+    render();
+  }
+
+  function load() {
+    render();
+    if (typeof XLSX === 'undefined') { state.status = 'error'; state.error = 'No se cargó el lector de planillas (falta el archivo xlsx.full.min.js en el repositorio).'; render(); return; }
+    var url = XLSX_PATH + '?t=' + Date.now();
+    fetch(url, { cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('El servidor respondió ' + res.status + ' al pedir ' + XLSX_PATH + '.');
+      var lm = res.headers.get('last-modified');
+      return res.arrayBuffer().then(function (buf) { return { buf: buf, lm: lm ? new Date(lm) : null }; });
+    }).then(function (r) {
+      applyWorkbook(XLSX.read(new Uint8Array(r.buf), { type: 'array' }), 'repo', r.lm && !isNaN(r.lm) ? r.lm : null);
+    }).catch(function (e) {
+      state.status = 'error'; state.error = e && e.message ? e.message : 'Error desconocido.'; render();
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', load);
+})();
+</script>
+</body>
+</html>
