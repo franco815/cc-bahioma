@@ -200,6 +200,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
 </head>
 <body>
 <div id="app"></div>
+<script src="config.js"></script>
 <script src="xlsx.full.min.js"></script>
 <script>
 (function () {
@@ -267,11 +268,15 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
     if (typeof v === 'number') return isNaN(v) ? null : v;
     var s = String(v).trim();
     if (!s || s === '-' || s === '—') return null;
-    s = s.replace(/[$\s]/g, '').replace(/ARS/i, '');
-    if (/,\d{1,2}$/.test(s)) s = s.replace(/\./g, '').replace(',', '.');   // 1.234,56
-    else s = s.replace(/,/g, '');                                          // 1,234.56
+    s = s.replace(/[$\s ]/g, '').replace(/ARS/i, '');
+    var neg = /^\(.*\)$/.test(s) || s.charAt(0) === '−';
+    s = s.replace(/[()−]/g, '');
+    if (/,\d{1,2}$/.test(s)) s = s.replace(/\./g, '').replace(',', '.');   // 1.234,56  (formato es-AR)
+    else if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');    // 1.500.000 (miles con punto, sin decimales)
+    else s = s.replace(/,/g, '');                                          // 1,234.56 / 1234.56
     var n = parseFloat(s);
-    return isNaN(n) ? null : n;
+    if (isNaN(n)) return null;
+    return neg ? -Math.abs(n) : n;
   }
   function serialToISO(serial) {
     var ms = Math.round((serial - 25569) * 86400 * 1000);
@@ -283,11 +288,14 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
     if (v instanceof Date) return v.getFullYear() + '-' + pad2(v.getMonth() + 1) + '-' + pad2(v.getDate());
     if (typeof v === 'number') return v > 20000 ? serialToISO(v) : '';
     var s = String(v).trim();
-    var m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?$/);
+    var m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?(?:[ T]\d{1,2}:\d{2}(?::\d{2})?)?$/);
     if (m) {
       var y = m[3] ? +m[3] : (defaultYear || new Date().getFullYear());
       if (y < 100) y += 2000;
-      return y + '-' + pad2(+m[2]) + '-' + pad2(+m[1]);
+      var d = +m[1], mo = +m[2];
+      if (mo > 12 && d <= 12) { var t = d; d = mo; mo = t; }     // planilla en formato mes/día
+      if (mo < 1 || mo > 12 || d < 1 || d > 31) return '';
+      return y + '-' + pad2(mo) + '-' + pad2(d);
     }
     m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (m) return m[1] + '-' + m[2] + '-' + m[3];
@@ -323,9 +331,11 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
     return null;
   }
   function pick(map, names) {
-    for (var i = 0; i < names.length; i++) if (map[names[i]] != null) return map[names[i]];
-    var keys = Object.keys(map);
-    for (i = 0; i < names.length; i++) for (var k = 0; k < keys.length; k++) if (keys[k].indexOf(names[i]) === 0) return map[keys[k]];
+    var i, k, keys = Object.keys(map);
+    for (i = 0; i < names.length; i++) if (map[names[i]] != null) return map[names[i]];
+    /* Google Sheets (gviz) pega las filas de título al encabezado: "Movimientos · … Año" → vale el final del texto. */
+    for (i = 0; i < names.length; i++) for (k = 0; k < keys.length; k++) if (keys[k].length > names[i].length && keys[k].slice(-names[i].length - 1) === ' ' + names[i]) return map[keys[k]];
+    for (i = 0; i < names.length; i++) for (k = 0; k < keys.length; k++) if (keys[k].indexOf(names[i]) === 0) return map[keys[k]];
     return -1;
   }
   function cell(row, idx) { return idx >= 0 && idx < row.length ? row[idx] : null; }
@@ -336,12 +346,37 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
   }
 
   function parseWorkbook(wb) {
-    var warnings = [], movimientos = [], cobros = [];
     var wsM = findSheet(wb, 'Movimientos'), wsC = findSheet(wb, 'Cobros');
     if (!wsM) throw new Error('La planilla no tiene una hoja "Movimientos".');
     if (!wsC) throw new Error('La planilla no tiene una hoja "Cobros".');
+    var parsed = parseTables(
+      XLSX.utils.sheet_to_json(wsM, { header: 1, defval: null, raw: true }),
+      XLSX.utils.sheet_to_json(wsC, { header: 1, defval: null, raw: true }));
+    parsed.modified = wb.Props && wb.Props.ModifiedDate instanceof Date && !isNaN(wb.Props.ModifiedDate) ? wb.Props.ModifiedDate : null;
+    return parsed;
+  }
 
-    var rows = XLSX.utils.sheet_to_json(wsM, { header: 1, defval: null, raw: true });
+  /* CSV (RFC 4180) → filas de celdas; todo queda como texto y lo interpretan toNumber / toISO / toMonth. */
+  function parseCSV(text) {
+    var rows = [], row = [], field = '', q = false, i, c;
+    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+    for (i = 0; i < text.length; i++) {
+      c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; }
+        else field += c;
+      } else if (c === '"') q = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(field); rows.push(row); row = []; field = ''; }
+      else field += c;
+    }
+    if (field !== '' || row.length) { row.push(field); rows.push(row); }
+    return rows.map(function (r) { return r.map(function (v) { return v === '' ? null : v; }); });
+  }
+
+  function parseTables(rowsM, rowsC) {
+    var warnings = [], movimientos = [], cobros = [];
+    var rows = rowsM;
     var h = headerMap(rows, ['mes', 'concepto', 'importe']);
     if (!h) throw new Error('En "Movimientos" no encuentro la fila de encabezados (Mes, Concepto, Importe).');
     var c = {
@@ -380,7 +415,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
       });
     }
 
-    rows = XLSX.utils.sheet_to_json(wsC, { header: 1, defval: null, raw: true });
+    rows = rowsC;
     h = headerMap(rows, ['banco', 'importe']);
     if (!h) throw new Error('En "Cobros" no encuentro la fila de encabezados (Banco, Importe).');
     var k = {
@@ -406,8 +441,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
         fechaCobro: fcobro, importe: imp, impCheque: toNumber(cell(row, k.imp)), estado: estadoC, obs: txt(cell(row, k.obs))
       });
     }
-    var modified = wb.Props && wb.Props.ModifiedDate instanceof Date && !isNaN(wb.Props.ModifiedDate) ? wb.Props.ModifiedDate : null;
-    return { movimientos: movimientos, cobros: cobros, warnings: warnings, modified: modified };
+    return { movimientos: movimientos, cobros: cobros, warnings: warnings, modified: null };
   }
 
   /* ------------------------------------------------------------ compute */
@@ -487,7 +521,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
     return '<header class="head">' +
       '<div class="brand">' + LOGO + '<div class="wm"><b>MAD</b><span>ESTUDIO</span></div></div>' +
       '<div class="doc"><h1>Estado de cuenta · Bahioma</h1>' +
-      '<p class="sub">Servicio de personal · cargas sociales y honorarios' + (stamp ? ' · planilla actualizada el ' + esc(stamp) : '') + src + '</p></div>' +
+      '<p class="sub">Servicio de personal · cargas sociales y honorarios' + (stamp ? (state.source === 'sheets' ? ' · datos al ' : ' · planilla actualizada el ') + esc(stamp) : '') + src + '</p></div>' +
       '</header>';
   }
 
@@ -644,7 +678,10 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
     return '<footer class="foot">' +
       '<div><h3>Cómo se lee</h3><p>Cada cheque o transferencia que MAD ESTUDIO cobra entra como crédito en la cuenta corriente. Cada movimiento saldado con cuenta corriente se descuenta de ese crédito.</p><p>Saldo positivo: Bahioma tiene plata a favor. Saldo negativo: Bahioma le debe ese monto a MAD ESTUDIO.</p></div>' +
       '<div><h3>Vencimientos</h3><p>Las cargas sociales se abonan del 1 al 10 del mes siguiente al del servicio. Los honorarios, según lo acordado en cada período.</p><p>Cuando un movimiento se factura, el IVA se suma al importe a pagar.</p></div>' +
-      '<div><h3>Datos</h3><p>Fuente: planilla de MAD ESTUDIO (<code>' + esc(XLSX_PATH) + '</code>). Esta vista es de solo lectura; se actualiza cuando MAD ESTUDIO publica una planilla nueva.</p><p class="ro">● Solo lectura</p></div>' +
+      '<div><h3>Datos</h3><p>' + (state.source === 'sheets'
+        ? 'Fuente: planilla de MAD ESTUDIO en Google Sheets, leída en vivo al abrir esta página. Esta vista es de solo lectura; para ver cambios recientes, recargá.'
+        : 'Fuente: planilla de MAD ESTUDIO (<code>' + esc(XLSX_PATH) + '</code>). Esta vista es de solo lectura; se actualiza cuando MAD ESTUDIO publica una planilla nueva.') +
+      '</p><p class="ro">● Solo lectura</p></div>' +
       '</footer>';
   }
 
@@ -656,7 +693,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
       '<section class="section"><div class="card" style="padding:22px">' +
       '<h2 style="margin-bottom:6px">No se pudo leer la planilla</h2>' +
       '<p class="ink2" style="font-size:13px;margin-bottom:14px">' + esc(msg) + '</p>' +
-      '<p class="ink2" style="font-size:13px;margin-bottom:10px">Si estás viendo este archivo en tu computadora, podés previsualizar con la planilla local:</p>' +
+      '<p class="ink2" style="font-size:13px;margin-bottom:10px">Para previsualizar con una copia local de la planilla (.xlsx):</p>' +
       '<label class="btn ghost" for="file-local" style="cursor:pointer">Elegir planilla (.xlsx)</label>' +
       '<input id="file-local" type="file" accept=".xlsx,.xlsm,.xls" hidden>' +
       '</div></section>';
@@ -717,8 +754,8 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
   }
 
   /* ------------------------------------------------------------ load */
-  function applyWorkbook(wb, source, fallbackDate) {
-    var parsed = parseWorkbook(wb);
+  function applyWorkbook(wb, source, fallbackDate) { applyParsed(parseWorkbook(wb), source, fallbackDate); }
+  function applyParsed(parsed, source, fallbackDate) {
     state.data = { movimientos: parsed.movimientos, cobros: parsed.cobros };
     state.sum = compute(state.data);
     state.warnings = parsed.warnings;
@@ -730,19 +767,59 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
     render();
   }
 
-  function load() {
-    render();
-    if (typeof XLSX === 'undefined') { state.status = 'error'; state.error = 'No se cargó el lector de planillas (falta el archivo xlsx.full.min.js en el repositorio).'; render(); return; }
-    var url = XLSX_PATH + '?t=' + Date.now();
-    fetch(url, { cache: 'no-store' }).then(function (res) {
-      if (!res.ok) throw new Error('El servidor respondió ' + res.status + ' al pedir ' + XLSX_PATH + '.');
+  function fail(e) { state.status = 'error'; state.error = e && e.message ? e.message : 'Error desconocido.'; render(); }
+
+  function loadXlsx(path) {
+    if (typeof XLSX === 'undefined') { fail(new Error('No se cargó el lector de planillas (falta el archivo xlsx.full.min.js en el repositorio).')); return; }
+    fetch(path + '?t=' + Date.now(), { cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('El servidor respondió ' + res.status + ' al pedir ' + path + '.');
       var lm = res.headers.get('last-modified');
       return res.arrayBuffer().then(function (buf) { return { buf: buf, lm: lm ? new Date(lm) : null }; });
     }).then(function (r) {
       applyWorkbook(XLSX.read(new Uint8Array(r.buf), { type: 'array' }), 'repo', r.lm && !isNaN(r.lm) ? r.lm : null);
-    }).catch(function (e) {
-      state.status = 'error'; state.error = e && e.message ? e.message : 'Error desconocido.'; render();
+    }).catch(fail);
+  }
+
+  /* Google Sheets: la hoja compartida como "Cualquier persona con el enlace · Lector" se lee como CSV, una pestaña por pedido. */
+  function sheetId(url) {
+    var m = /\/spreadsheets\/d\/([A-Za-z0-9_-]{20,})/.exec(url || '');
+    if (m) return m[1];
+    return /^[A-Za-z0-9_-]{20,}$/.test(url || '') ? url : null;
+  }
+  function sheetCsvUrl(cfg, hoja, override) {
+    var bust = 't=' + Date.now();
+    if (override) return override + (override.indexOf('?') >= 0 ? '&' : '?') + bust;
+    var id = sheetId(cfg.url);
+    if (!id) throw new Error('El link de Google Sheets en config.js no es válido: tiene que ser el link de la hoja (docs.google.com/spreadsheets/d/…).');
+    return 'https://docs.google.com/spreadsheets/d/' + id + '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(hoja) + '&' + bust;
+  }
+  function fetchCsv(url, hoja) {
+    return fetch(url, { cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('Google Sheets respondió ' + res.status + ' al pedir la hoja "' + hoja + '". Revisá que el documento esté compartido como "Cualquier persona con el enlace" y que la pestaña se llame así.');
+      return res.text();
+    }).then(function (text) {
+      if (/^\s*</.test(text)) throw new Error('Google Sheets devolvió una página en vez de datos para la hoja "' + hoja + '": el documento no está compartido como "Cualquier persona con el enlace · Lector".');
+      return parseCSV(text);
+    }, function (e) {
+      if (e instanceof TypeError) throw new Error('No se pudo conectar con Google Sheets para leer la hoja "' + hoja + '". Revisá la conexión o que el documento esté compartido con el enlace.');
+      throw e;
     });
+  }
+  function loadSheets(cfg) {
+    var hm = cfg.hojaMovimientos || 'Movimientos', hc = cfg.hojaCobros || 'Cobros';
+    try {
+      var uM = sheetCsvUrl(cfg, hm, cfg.csvMovimientos), uC = sheetCsvUrl(cfg, hc, cfg.csvCobros);
+    } catch (e) { fail(e); return; }
+    Promise.all([fetchCsv(uM, hm), fetchCsv(uC, hc)]).then(function (r) {
+      applyParsed(parseTables(r[0], r[1]), 'sheets', new Date());
+    }).catch(fail);
+  }
+
+  function load() {
+    render();
+    var cfg = window.CC_CONFIG || {};
+    if (cfg.fuente === 'sheets' && cfg.sheets) loadSheets(cfg.sheets);
+    else loadXlsx(cfg.xlsx || XLSX_PATH);
   }
 
   document.addEventListener('DOMContentLoaded', load);

@@ -3,16 +3,18 @@
 Dashboard de solo lectura con el estado de cuenta entre **MAD ESTUDIO** y **Bahioma**
 (cargas sociales, honorarios, cobros y saldo de cuenta corriente).
 
-La página (`index.html`) lee la planilla `MAD_Bahioma_CC.xlsx` **directo de este repositorio**
-cada vez que alguien la abre. No hay base de datos ni nada que configurar: la planilla es la
-única fuente de datos, y quien entra al link solo puede mirar.
+La página (`index.html`) lee la planilla **en vivo desde Google Sheets** cada vez que alguien la
+abre (o, si se configura así, desde el archivo `MAD_Bahioma_CC.xlsx` de este repositorio). No hay
+base de datos ni nada que configurar: la planilla es la única fuente de datos, y quien entra al
+link solo puede mirar.
 
 ## Qué hay en el repo
 
 | Archivo | Qué es |
 |---|---|
 | `index.html` | El dashboard. No hace falta tocarlo. |
-| `MAD_Bahioma_CC.xlsx` | La planilla maestra: hojas **Movimientos**, **Cobros**, **Resumen** y **Cómo usar**. Es lo único que se actualiza. |
+| `config.js` | Dice de dónde se leen los datos: el link de la planilla de Google Sheets (`fuente: "sheets"`) o el Excel del repo (`fuente: "xlsx"`). |
+| `MAD_Bahioma_CC.xlsx` | Copia de la planilla maestra (hojas **Movimientos**, **Cobros**, **Resumen** y **Cómo usar**). Es la que se importa a Google Sheets, y la fuente de datos si se usa `fuente: "xlsx"`. |
 | `xlsx.full.min.js` | Librería que permite al navegador leer el Excel (SheetJS 0.18.5). No se toca. |
 
 ## Publicar por primera vez (una sola vez)
@@ -21,23 +23,29 @@ cada vez que alguien la abre. No hay base de datos ni nada que configurar: la pl
    > Con un plan gratuito, GitHub Pages solo publica repositorios públicos. El repo y la planilla
    > quedan visibles para quien encuentre el link; si preferís que el repo sea privado, GitHub Pro
    > permite publicar Pages desde repos privados (el dashboard igual es público para quien tenga el link).
-2. En el repo nuevo: **Add file → Upload files**. Arrastrá los cuatro archivos de esta carpeta
-   (`index.html`, `MAD_Bahioma_CC.xlsx`, `xlsx.full.min.js`, `README.md`) y apretá **Commit changes**.
+2. En el repo nuevo: **Add file → Upload files**. Arrastrá los cinco archivos de esta carpeta
+   (`index.html`, `config.js`, `MAD_Bahioma_CC.xlsx`, `xlsx.full.min.js`, `README.md`) y apretá **Commit changes**.
 3. **Settings → Pages**. En *Build and deployment*: Source = **Deploy from a branch**,
    Branch = **main** y carpeta **/ (root)**. Guardá.
 4. Esperá un minuto y recargá esa misma pantalla: arriba aparece el link, con la forma
    `https://TU-USUARIO.github.io/NOMBRE-DEL-REPO/`. Ese es el link que le pasás a Bahioma.
 
+## Conectar la planilla de Google Sheets (una sola vez)
+
+1. En sheets.google.com: hoja en blanco → **Archivo → Importar → Subir** → `MAD_Bahioma_CC.xlsx`
+   → *Reemplazar hoja de cálculo*. Ponele nombre (por ejemplo "MAD Bahioma CC").
+2. Chequeá **Archivo → Configuración → Configuración regional: Argentina** (fechas dd/mm/aaaa).
+3. **Compartir → Acceso general: Cualquier persona con el enlace · Lector → Copiar enlace**.
+4. En `config.js`: `fuente: "sheets"` y pegá el enlace en `sheets.url`. Subí `config.js` al repo.
+
 ## Actualizar los datos (cada vez que cambie algo)
 
-1. Editá `MAD_Bahioma_CC.xlsx` en tu computadora (Movimientos y Cobros) y guardalo con el mismo nombre.
-2. En el repo: **Add file → Upload files**, arrastrá la planilla y **Commit changes**.
-   Como tiene el mismo nombre, reemplaza a la anterior.
-3. En un minuto GitHub Pages publica la versión nueva. Bahioma la ve en el mismo link
-   (si alguien lo tenía abierto, con recargar la página alcanza).
+Con Google Sheets conectado: editás la planilla (desde la compu o desde la app del celular) y
+listo. El dashboard la lee al abrirse; si alguien lo tenía abierto, con recargar alcanza.
+No hay que subir nada a GitHub.
 
-También podés hacerlo con GitHub Desktop: reemplazás el archivo en la carpeta del repo,
-*Commit to main* y *Push origin*.
+Si en cambio usás `fuente: "xlsx"`: editá `MAD_Bahioma_CC.xlsx`, guardalo con el mismo nombre y
+subilo al repo (**Add file → Upload files → Commit changes**). En un minuto se publica.
 
 ## Reglas de la planilla (para que la lectura no falle)
 
@@ -61,7 +69,9 @@ La hoja **Resumen** del Excel calcula exactamente lo mismo, así que siempre pod
 
 ## Si el dashboard muestra "No se pudo leer la planilla"
 
-- Verificá que el archivo en el repo se llame exactamente `MAD_Bahioma_CC.xlsx`.
-- Si abrís `index.html` en tu computadora (doble clic), el navegador no puede leer el archivo
-  del disco por seguridad: usá el botón *Elegir planilla* para previsualizar con tu copia local,
-  o mirá directamente el link de GitHub Pages.
+- Google Sheets: revisá que el documento esté compartido como **Cualquier persona con el enlace**
+  (rol Lector) y que las pestañas se sigan llamando **Movimientos** y **Cobros**.
+- Excel en el repo: verificá que el archivo se llame exactamente `MAD_Bahioma_CC.xlsx`.
+- Si abrís `index.html` en tu computadora (doble clic), el navegador no puede leer archivos del
+  disco por seguridad: usá el botón *Elegir planilla* para previsualizar con tu copia local, o
+  mirá directamente el link de GitHub Pages.
