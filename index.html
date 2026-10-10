@@ -259,6 +259,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
   function periodo(m) { return MESES_CAP[m.mes - 1] + ' ' + m.anio; }
   function todayISO() { var d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
   function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+  function isDirecto(tipo) { var t = norm(tipo); return /^transf/.test(t) || /^efe/.test(t) || /^dep/.test(t); }
   function conceptLabel(c) { var k = norm(c); return CONCEPT_LABEL[k] || (c || 'Otros'); }
   function conceptKey(c) { return CONCEPT_KEY[norm(c)] || 'otros'; }
   function sum(arr, f) { var t = 0; for (var i = 0; i < arr.length; i++) { var v = f(arr[i]); if (v != null && !isNaN(v)) t += v; } return Math.round(t * 100) / 100; }
@@ -440,7 +441,12 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
         else estC = txt(cell(row, bc.estado));
         var fe = toISO(cell(row, bc.fecha), anio), fc = toISO(cell(row, bc.fcobro), anio);
         if (fe && fc && fc < fe) fc = String(+fc.slice(0, 4) + 1) + fc.slice(4);   /* cobro "15/1" de un cheque emitido en diciembre */
-        cobRows.push([fe, banco, 'Cheque', cell(row, bc.num), fc, imp, cell(row, bc.imp), estC, '']);
+        var bN = norm(banco), tipoC = 'Cheque';
+        if (/^transf/.test(bN) || bN === 'tr') { tipoC = 'Transferencia'; banco = ''; }
+        else if (/^efe/.test(bN) || bN === 'efvo') { tipoC = 'Efectivo'; banco = ''; }
+        else if (/^dep/.test(bN)) { tipoC = 'Depósito'; banco = ''; }
+        if (tipoC !== 'Cheque' && !en) estC = 'Cobrado';
+        cobRows.push([fe, banco, tipoC, cell(row, bc.num), fc, imp, cell(row, bc.imp), estC, '']);
       }
     }
     return parseTables(movRows, cobRows);
@@ -549,8 +555,17 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
     var abiertosL = conMonto.filter(function (m) { return m.estado !== 'Saldado'; });
     var aparteL = saldadosL.filter(function (m) { return m.forma && m.forma !== 'CC'; });
     var sinFacturarL = conMonto.filter(function (m) { return !m.factura; });
+    /* Pagos directos (transferencia / efectivo): si están cargados como cobro, se toman de ahí; si solo figuran
+       como forma de pago de un movimiento, se generan desde el movimiento. Nunca las dos cosas a la vez. */
+    var directosL = entregadosL.filter(function (c) { return isDirecto(c.tipo); });
+    var chequesL = entregadosL.filter(function (c) { return !isDirecto(c.tipo); });
+    var usados = [], sinteticosL = aparteL.filter(function (m) {
+      for (var i = 0; i < directosL.length; i++) if (usados.indexOf(i) < 0 && Math.abs((directosL[i].importe || 0) - m.importe) < 1) { usados.push(i); return false; }
+      return true;
+    });
     var s = {
-      cheques: sum(entregadosL, function (c) { return c.importe; }), nCheques: entregadosL.length,
+      cheques: sum(chequesL, function (c) { return c.importe; }), nCheques: chequesL.length,
+      directos: sum(directosL, function (c) { return c.importe; }) + sum(sinteticosL, function (m) { return m.importe; }), nDirectos: directosL.length + sinteticosL.length,
       cobrado: sum(cobradoL, function (c) { return c.importe; }), nCobrado: cobradoL.length,
       enCartera: sum(carteraL, function (c) { return c.importe; }), nCartera: carteraL.length,
       pagadoAparte: sum(aparteL, function (m) { return m.importe; }), nAparte: aparteL.length,
@@ -560,7 +575,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
       sinMonto: sinMonto, iva: sum(M, function (m) { return m.iva; }),
       impCheque: sum(C, function (c) { return c.impCheque; })
     };
-    s.entregado = Math.round((s.cheques + s.pagadoAparte) * 100) / 100;
+    s.entregado = Math.round((s.cheques + s.directos) * 100) / 100;
     s.saldo = Math.round((s.entregado - s.trasladado) * 100) / 100;
     var hoy = todayISO();
     s.cartera = carteraL.slice().sort(function (a, b) { return (a.fechaCobro || a.fecha || '') < (b.fechaCobro || b.fecha || '') ? -1 : 1; });
@@ -588,7 +603,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
         monto: c.importe
       });
     });
-    aparteL.forEach(function (m) {
+    sinteticosL.forEach(function (m) {
       entries.push({ fecha: m.fechaPago, kind: 'credito', detalle: m.forma + ' directa', sub: 'Cancela ' + conceptLabel(m.concepto) + ' · ' + periodo(m), monto: m.importe });
     });
     conMonto.forEach(function (m) {
@@ -655,7 +670,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
     if (s.saldo < 0) { chip = '<span class="chip">A favor de MAD ESTUDIO</span>'; sub = 'Bahioma debe este monto: lo trasladado supera lo entregado hasta ahora.'; }
     else if (s.saldo > 0) { chip = '<span class="chip">A favor de Bahioma</span>'; sub = 'Crédito disponible para descontar de los próximos vencimientos.'; }
     else { chip = '<span class="chip">Cuenta al día</span>'; sub = 'Lo entregado y lo trasladado coinciden.'; }
-    var entSub = plural(s.nCheques, 'cheque', 'cheques') + (s.nAparte ? ' + ' + plural(s.nAparte, 'transferencia', 'transferencias') : '') + (s.enCartera ? ' · ' + money(s.enCartera) + ' todavía por acreditar' : '');
+    var entSub = plural(s.nCheques, 'cheque', 'cheques') + (s.nDirectos ? ' + ' + plural(s.nDirectos, 'transferencia', 'transferencias') : '') + (s.enCartera ? ' · ' + money(s.enCartera) + ' todavía por acreditar' : '');
     var traSub = plural(s.nTrasladado, 'movimiento', 'movimientos') + (s.iva ? ' · ' + money(s.iva) + ' de IVA incluido' : '') + (s.nAbiertos ? ' · ' + plural(s.nAbiertos, 'pendiente de cancelar', 'pendientes de cancelar') : '');
     var facSub = s.nSinFacturar ? plural(s.nSinFacturar, 'movimiento ya en cuenta sin factura emitida', 'movimientos ya en cuenta sin factura emitida') : 'Todo lo trasladado está facturado';
     var cartSub = s.nCartera ? plural(s.nCartera, 'cheque en cartera', 'cheques en cartera') + (s.carteraVencidos ? ' · ' + s.carteraVencidos + ' con fecha de cobro cumplida, a confirmar' : (s.cartera[0] && s.cartera[0].fechaCobro ? ' · próximo cobro ' + fdate(s.cartera[0].fechaCobro) : '')) + '. Ya cuentan en el saldo.' : 'Todo lo entregado está acreditado';
