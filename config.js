@@ -8,12 +8,20 @@ window.CC_CONFIG = {
 
   sheets: {
     /* Link de la planilla de Google Sheets, compartida como "Cualquier persona con el enlace · Lector". */
-    url: "https://docs.google.com/spreadsheets/d/1d6_VJ5CFoBRcJTCSho2Smd_yK3YKlej6_JlMRinrMMI/edit?usp=sharing",
-    /* Nombres de las pestañas (dejar así salvo que las renombres). */
+    url: "https://docs.google.com/spreadsheets/d/1819FRnw-oeIb--b3T_lDOqCn3dSMojDtciYZFfu12KM/edit",
+
+    /* "original" = una sola pestaña con el formato de MAD (Mes / Tipo de cobro / … y el bloque "Cobros a Bahioma" a la derecha).
+       "tablas"   = dos pestañas, Movimientos y Cobros (la planilla MAD_Bahioma_CC). */
+    formato: "original",
+    /* Para formato "original": qué pestaña leer (0 = la primera; el número aparece en el link como gid=…). */
+    gid: 0,
+
+    /* Para formato "tablas": nombres de las pestañas. */
     hojaMovimientos: "Movimientos",
     hojaCobros: "Cobros",
-    /* Opcional: links CSV de "Archivo → Compartir → Publicar en la web" (uno por pestaña, formato CSV).
-       Si están cargados, se usan en lugar de la url de arriba. */
+
+    /* Opcional: links CSV de "Archivo → Compartir → Publicar en la web". Si están cargados, se usan en lugar de la url. */
+    csvHoja: "",
     csvMovimientos: "",
     csvCobros: ""
   },

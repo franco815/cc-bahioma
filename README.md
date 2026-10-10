@@ -37,6 +37,16 @@ link solo puede mirar.
 2. Chequeá **Archivo → Configuración → Configuración regional: Argentina** (fechas dd/mm/aaaa).
 3. **Compartir → Acceso general: Cualquier persona con el enlace · Lector → Copiar enlace**.
 4. En `config.js`: `fuente: "sheets"` y pegá el enlace en `sheets.url`. Subí `config.js` al repo.
+5. `formato` dice cómo está armada la hoja: `"tablas"` (dos pestañas, Movimientos y Cobros, como
+   `MAD_Bahioma_CC.xlsx`) u `"original"` (una sola pestaña con el formato de MAD: columnas
+   Mes / Tipo de cobro / Factura / IVA / Neto / Importe / eCheq / Transf/Efvo / Estado, y el bloque
+   "Cobros a Bahioma" a la derecha con Banco / Número / fecha / fecha de cobro / Importe / Imp al cheque / Entrada).
+   En el formato original: cada fila con importe entra a la cuenta corriente apenas se carga; Estado se
+   escribe "Saldado d/m" cuando quedó cubierta o se deja vacío (pendiente de cancelar); Transf/Efvo es
+   "CC" (cubierto con el crédito de los cheques) o "Transferencia" / "Efectivo" (pago directo, que entra
+   también como crédito); el número de factura es lo que marca "facturado" (sin número = "sin facturar",
+   el rojo de la planilla); Entrada es "Acreditado" (ya cobrado) o "NO" (en cartera). No hay que mover
+   los encabezados.
 
 ## Actualizar los datos (cada vez que cambie algo)
 
@@ -53,15 +63,16 @@ subilo al repo (**Add file → Upload files → Commit changes**). En un minuto 
 - Usá los valores de las listas desplegables (Concepto, Forma de pago, Estado, Tipo).
 - No dejes filas vacías entre datos. Las filas totalmente vacías al final no molestan.
 - En Movimientos cargás **Neto** (y **IVA** si hubo factura); el **Importe** se calcula solo.
-- Un movimiento se descuenta de la cuenta corriente cuando queda **Saldado** con forma de pago **CC**.
-  Los pagados por **Transferencia** o **Efectivo** aparecen, pero no tocan la cuenta corriente.
-- Un cobro suma crédito cuando su estado es **Cobrado**. **En cartera** se muestra como "por acreditar".
+- Un movimiento entra como débito de la cuenta corriente cuando queda **Saldado** (con IVA si fue facturado).
+  Si se pagó por **Transferencia** o **Efectivo**, ese pago entra a la vez como crédito, así la cuenta queda completa.
+- Un cheque suma crédito desde que se entrega, esté **Cobrado** o **En cartera**; solo **Rechazado** no cuenta.
+  "En cartera" se informa aparte como "por acreditar" (dato de tesorería, no cambia el saldo).
 - **Imp. al cheque** es informativo: no se descuenta del crédito de Bahioma.
 
 ## Cómo se calcula el saldo
 
 ```
-Saldo CC = cobros Cobrados − movimientos Saldados con forma de pago CC
+Saldo CC = (cheques entregados + transferencias) − movimientos con importe cargado (con IVA si están facturados)
 ```
 
 Positivo: Bahioma tiene plata a favor. Negativo: Bahioma le debe ese monto a MAD ESTUDIO.

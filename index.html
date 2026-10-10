@@ -90,7 +90,8 @@ button{font:inherit;color:inherit}
 /* ---------- hero saldo */
 .hero{display:grid;grid-template-columns:minmax(290px,1.15fr) repeat(3,minmax(0,1fr));grid-auto-rows:auto;gap:1px;margin-top:22px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
 .hero .saldo{grid-row:1/span 2}
-.tile.proy{background:var(--surface-2)}
+.tile.proy{background:var(--surface-2);grid-column:span 2}
+@media (max-width:1000px){.tile.proy{grid-column:auto}}
 @media (max-width:1000px){.hero{grid-template-columns:1fr 1fr}.hero .saldo{grid-column:1/-1;grid-row:auto}}
 @media (max-width:520px){.hero{grid-template-columns:1fr}}
 .hero>*{min-width:0}
@@ -346,14 +347,103 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
   }
 
   function parseWorkbook(wb) {
-    var wsM = findSheet(wb, 'Movimientos'), wsC = findSheet(wb, 'Cobros');
-    if (!wsM) throw new Error('La planilla no tiene una hoja "Movimientos".');
-    if (!wsC) throw new Error('La planilla no tiene una hoja "Cobros".');
-    var parsed = parseTables(
-      XLSX.utils.sheet_to_json(wsM, { header: 1, defval: null, raw: true }),
-      XLSX.utils.sheet_to_json(wsC, { header: 1, defval: null, raw: true }));
+    var wsM = findSheet(wb, 'Movimientos'), wsC = findSheet(wb, 'Cobros'), parsed;
+    if (wsM && wsC) {
+      parsed = parseTables(
+        XLSX.utils.sheet_to_json(wsM, { header: 1, defval: null, raw: true }),
+        XLSX.utils.sheet_to_json(wsC, { header: 1, defval: null, raw: true }));
+    } else {
+      var first = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: null, raw: true });
+      if (!isLegacy(first)) throw new Error('La planilla no tiene las hojas "Movimientos" y "Cobros", ni el formato de una sola hoja (Mes / Tipo de cobro / Cobros a Bahioma).');
+      parsed = parseLegacy(first);
+    }
     parsed.modified = wb.Props && wb.Props.ModifiedDate instanceof Date && !isNaN(wb.Props.ModifiedDate) ? wb.Props.ModifiedDate : null;
     return parsed;
+  }
+
+  /* ---- Formato "una sola hoja" (la planilla original de MAD): movimientos a la izquierda, bloque "Cobros a Bahioma" a la derecha.
+     Se detecta por los encabezados Mes / Tipo de cobro / eCheq / Transf/Efvo / Estado y Banco / Entrada, y se traduce al formato de dos tablas. */
+  function findCell(rows, name, maxRows) {
+    for (var r = 0; r < Math.min(rows.length, maxRows || 12); r++)
+      for (var c = 0; c < rows[r].length; c++) if (norm(rows[r][c]) === name) return { r: r, c: c };
+    return null;
+  }
+  function isLegacy(rows) { return !!(findCell(rows, 'mes') && findCell(rows, 'tipo de cobro')); }
+  function legacyMes(v) {   /* "Sept" → Septiembre, etc. */
+    var n = toMonth(v); return n ? MESES_CAP[n - 1] : txt(v);
+  }
+  function parseLegacy(rows) {
+    var hm = findCell(rows, 'mes'), ht = findCell(rows, 'tipo de cobro');
+    if (!hm || !ht || hm.r !== ht.r) throw new Error('No encuentro los encabezados "Mes" y "Tipo de cobro" en la misma fila.');
+    var hr = hm.r, head = rows[hr].map(norm);
+    var cMes = hm.c, cTipo = ht.c, cVenc = cMes - 1;
+    var cEcheq = head.indexOf('echeq'), cForma = head.indexOf('transf/efvo'), cEstado = head.indexOf('estado');
+    if (cForma < 0) cForma = head.indexOf('forma de pago');
+    if (cEstado < 0) throw new Error('No encuentro la columna "Estado" en la fila de encabezados.');
+    /* Entre "Tipo de cobro" y eCheq/Estado van Factura, IVA, Neto, Importe: por nombre si tienen título, si no por posición en ese orden. */
+    var endCols = cEcheq >= 0 ? cEcheq : (cForma >= 0 ? cForma : cEstado);
+    var mid = [], i;
+    for (i = cTipo + 1; i < endCols; i++) mid.push(i);
+    var col = { factura: -1, iva: -1, neto: -1, importe: -1 };
+    mid.forEach(function (ci) {
+      var h = head[ci] || '';
+      if (/^f(a)?ctura/.test(h)) col.factura = ci; else if (h === 'iva') col.iva = ci; else if (h === 'neto') col.neto = ci; else if (h === 'importe' || h === 'total') col.importe = ci;
+    });
+    var order = ['factura', 'iva', 'neto', 'importe'], unnamed = mid.filter(function (ci) { return !head[ci]; });
+    order.forEach(function (k, idx) { if (col[k] < 0 && mid.length === 4) col[k] = mid[idx]; });
+    if (col.importe < 0 && unnamed.length) col.importe = unnamed[unnamed.length - 1];
+    /* Año: la celda a la izquierda de "Mes" si es un año, si no la fecha de la primera fila, si no el año actual. */
+    var anio = null, y0 = toNumber(rows[hr][cVenc]);
+    if (y0 && y0 > 1990 && y0 < 2100) anio = Math.round(y0);
+    if (!anio) { var d0 = toISO(rows[0] && rows[0][0]); if (d0) anio = +d0.slice(0, 4); }
+    if (!anio) anio = new Date().getFullYear();
+
+    var movRows = [['Año', 'Mes', 'Concepto', 'Vencimiento', 'Factura N°', 'Neto', 'IVA', 'Importe', 'Forma de pago', 'Estado', 'Fecha de pago', 'Observaciones']];
+    for (var r = hr + 1; r < rows.length; r++) {
+      var row = rows[r], mes = cell(row, cMes), tipo = cell(row, cTipo);
+      if (txt(mes) === '' && txt(tipo) === '') continue;
+      if (!toMonth(mes)) continue;
+      var est = txt(cell(row, cEstado)), estN = norm(est), estado = '', fpago = '';
+      var md = est.match(/(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?/);
+      if (estN.indexOf('sald') === 0 || estN.indexOf('pag') === 0 || estN.indexOf('cobr') === 0) { estado = 'Saldado'; if (md) fpago = toISO(md[0], anio); }
+      else if (estN.indexOf('pend') === 0 || estN === '') estado = 'Pendiente';
+      else estado = est;
+      var forma = txt(cell(row, cForma)), echeq = norm(cell(row, cEcheq));
+      if (!forma && echeq === 'si') forma = 'CC';
+      var venc = txt(cell(row, cVenc)), mv = venc.match(/se paga\s+(\d{1,2})\s*\/\s*(\d{1,2})\s+de\s+(.+)/i);
+      if (mv) venc = mv[1] + ' al ' + mv[2] + ' de ' + legacyMes(mv[3]);
+      movRows.push([anio, legacyMes(mes), txt(tipo), venc, col.factura >= 0 ? cell(row, col.factura) : null,
+        col.neto >= 0 ? cell(row, col.neto) : null, col.iva >= 0 ? cell(row, col.iva) : null, col.importe >= 0 ? cell(row, col.importe) : null,
+        forma, estado, fpago, '']);
+    }
+
+    var cobRows = [['Fecha', 'Banco', 'Tipo', 'Número', 'Fecha de cobro', 'Importe', 'Imp. al cheque', 'Estado', 'Observaciones']];
+    var hb = findCell(rows, 'banco');
+    if (hb) {
+      var bh = rows[hb.r].map(norm), cb = hb.c;
+      var cImp = bh.indexOf('imp al cheque'), cEnt = bh.indexOf('entrada');
+      if (cEnt < 0) cEnt = bh.indexOf('estado', cb);
+      var bc = { num: cb + 1, fecha: cb + 2, fcobro: cb + 3, importe: cb + 4, imp: cImp >= 0 ? cImp : cb + 5, estado: cEnt >= 0 ? cEnt : cb + 6 };
+      /* Si los encabezados de ese bloque tienen título, se respetan. */
+      ['num', 'fecha', 'fcobro', 'importe'].forEach(function (k) {
+        var names = { num: ['num', 'numero', 'n'], fecha: ['fecha'], fcobro: ['fecha de cobro', 'fecha cobro', 'cobro'], importe: ['importe'] }[k];
+        for (var j = cb + 1; j < bh.length; j++) if (names.indexOf(bh[j]) >= 0) { bc[k] = j; break; }
+      });
+      for (r = hb.r + 1; r < rows.length; r++) {
+        row = rows[r];
+        var banco = txt(cell(row, cb)), imp = cell(row, bc.importe);
+        if (!banco && toNumber(imp) == null) continue;
+        var en = norm(cell(row, bc.estado)), estC;
+        if (en === 'no' || en === '' || en.indexOf('cart') >= 0 || en.indexOf('pend') === 0) estC = 'En cartera';
+        else if (en === 'si' || en.indexOf('acred') === 0 || en.indexOf('cobr') === 0) estC = 'Cobrado';
+        else if (en.indexOf('rech') === 0 || en.indexOf('anul') === 0) estC = 'Rechazado';
+        else estC = txt(cell(row, bc.estado));
+        var fe = toISO(cell(row, bc.fecha), anio), fc = toISO(cell(row, bc.fcobro), anio);
+        if (fe && fc && fc < fe) fc = String(+fc.slice(0, 4) + 1) + fc.slice(4);   /* cobro "15/1" de un cheque emitido en diciembre */
+        cobRows.push([fe, banco, 'Cheque', cell(row, bc.num), fc, imp, cell(row, bc.imp), estC, '']);
+      }
+    }
+    return parseTables(movRows, cobRows);
   }
 
   /* CSV (RFC 4180) → filas de celdas; todo queda como texto y lo interpretan toNumber / toISO / toMonth. */
@@ -397,7 +487,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
       if (!mes) { warnings.push('Movimientos, fila ' + (r + 1) + ': no reconozco el mes "' + txt(cell(row, c.mes)) + '"; la fila se omite.'); continue; }
       var neto = toNumber(cell(row, c.neto)), iva = toNumber(cell(row, c.iva)), importe = toNumber(cell(row, c.importe));
       if (importe == null && (neto != null || iva != null)) importe = Math.round(((neto || 0) + (iva || 0)) * 100) / 100;
-      if (importe === 0 && neto == null) importe = null;
+      if (importe === 0 && neto == null) { importe = null; if (iva === 0) iva = null; }
       var estadoRaw = norm(cell(row, c.estado)), fpago = toISO(cell(row, c.fpago), anio), estado;
       if (estadoRaw.indexOf('sald') === 0 || estadoRaw.indexOf('pag') === 0 || estadoRaw.indexOf('cobr') === 0) estado = 'Saldado';
       else if (estadoRaw.indexOf('pend') === 0) estado = 'Pendiente';
@@ -447,33 +537,68 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
   /* ------------------------------------------------------------ compute */
   function compute(d) {
     var M = d.movimientos, C = d.cobros;
+    /* Modelo de cuenta corriente (criterio de MAD): todo lo que Bahioma entrega (transferencias y cheques, acreditados o no) es crédito;
+       todo movimiento con importe cargado es débito desde que existe, esté o no cancelado. "Saldado" solo registra cuándo quedó cubierto.
+       Los cheques rechazados no cuentan; las filas sin importe ("a definir") tampoco, hasta que se les ponga monto. */
+    var entregadosL = C.filter(function (c) { return c.estado !== 'Rechazado'; });
     var cobradoL = C.filter(function (c) { return c.estado === 'Cobrado'; });
     var carteraL = C.filter(function (c) { return c.estado === 'En cartera'; });
-    var aplicadosL = M.filter(function (m) { return m.forma === 'CC' && m.estado === 'Saldado'; });
-    var aparteL = M.filter(function (m) { return m.estado === 'Saldado' && m.forma !== 'CC'; });
-    var pendientes = M.filter(function (m) { return m.estado === 'Pendiente'; });
+    var conMonto = M.filter(function (m) { return m.importe != null; });
+    var sinMonto = M.filter(function (m) { return m.importe == null; });
+    var saldadosL = conMonto.filter(function (m) { return m.estado === 'Saldado'; });
+    var abiertosL = conMonto.filter(function (m) { return m.estado !== 'Saldado'; });
+    var aparteL = saldadosL.filter(function (m) { return m.forma && m.forma !== 'CC'; });
+    var sinFacturarL = conMonto.filter(function (m) { return !m.factura; });
     var s = {
+      cheques: sum(entregadosL, function (c) { return c.importe; }), nCheques: entregadosL.length,
       cobrado: sum(cobradoL, function (c) { return c.importe; }), nCobrado: cobradoL.length,
       enCartera: sum(carteraL, function (c) { return c.importe; }), nCartera: carteraL.length,
-      aplicadoCC: sum(aplicadosL, function (m) { return m.importe; }), nAplicados: aplicadosL.length,
       pagadoAparte: sum(aparteL, function (m) { return m.importe; }), nAparte: aparteL.length,
-      pendSum: sum(pendientes, function (m) { return m.importe; }),
-      pendSinMonto: pendientes.filter(function (m) { return m.importe == null; }).length,
-      pendientes: pendientes, iva: sum(M, function (m) { return m.iva; }),
+      trasladado: sum(conMonto, function (m) { return m.importe; }), nTrasladado: conMonto.length,
+      abiertos: sum(abiertosL, function (m) { return m.importe; }), nAbiertos: abiertosL.length,
+      sinFacturar: sum(sinFacturarL, function (m) { return m.importe; }), nSinFacturar: sinFacturarL.length,
+      sinMonto: sinMonto, iva: sum(M, function (m) { return m.iva; }),
       impCheque: sum(C, function (c) { return c.impCheque; })
     };
-    s.saldo = Math.round((s.cobrado - s.aplicadoCC) * 100) / 100;
-    s.proyectado = Math.round((s.saldo + s.enCartera - s.pendSum) * 100) / 100;
+    s.entregado = Math.round((s.cheques + s.pagadoAparte) * 100) / 100;
+    s.saldo = Math.round((s.entregado - s.trasladado) * 100) / 100;
     var hoy = todayISO();
     s.cartera = carteraL.slice().sort(function (a, b) { return (a.fechaCobro || a.fecha || '') < (b.fechaCobro || b.fecha || '') ? -1 : 1; });
     s.carteraVencidos = s.cartera.filter(function (c) { return c.fechaCobro && c.fechaCobro <= hoy; }).length;
 
-    var entries = [];
-    cobradoL.forEach(function (c) {
-      entries.push({ fecha: c.fechaCobro || c.fecha, kind: 'credito', detalle: c.tipo + (c.banco ? ' ' + c.banco : '') + (c.numero ? ' Nº ' + c.numero : ''), sub: c.fecha && c.fechaCobro && c.fecha !== c.fechaCobro ? 'Emitido el ' + fdate(c.fecha) : '', monto: c.importe });
+    /* Facturas emitidas: una fila por número, sumando los movimientos que la componen. */
+    var byFact = {};
+    conMonto.forEach(function (m) {
+      if (!m.factura) return;
+      var k = m.factura;
+      if (!byFact[k]) byFact[k] = { numero: k, items: [], neto: 0, iva: 0, total: 0 };
+      byFact[k].items.push(conceptLabel(m.concepto) + ' ' + periodo(m));
+      byFact[k].neto += m.neto || 0; byFact[k].iva += m.iva || 0; byFact[k].total += m.importe || 0;
     });
-    aplicadosL.forEach(function (m) {
-      entries.push({ fecha: m.fechaPago, kind: 'debito', detalle: conceptLabel(m.concepto) + ' · ' + periodo(m), sub: m.vencimiento ? 'Venc. ' + m.vencimiento : '', monto: m.importe });
+    s.facturas = Object.keys(byFact).sort(function (a, b) { return (+a || 0) - (+b || 0) || a.localeCompare(b); }).map(function (k) { return byFact[k]; });
+
+    var entries = [];
+    entregadosL.forEach(function (c) {
+      var cartera = c.estado === 'En cartera', vencido = cartera && c.fechaCobro && c.fechaCobro <= hoy;
+      entries.push({
+        fecha: c.fecha || c.fechaCobro, kind: 'credito', cartera: cartera,
+        detalle: c.tipo + (c.banco ? ' ' + c.banco : '') + (c.numero ? ' Nº ' + c.numero : ''),
+        sub: cartera ? (c.fechaCobro ? 'Cobro ' + fdate(c.fechaCobro) + (vencido ? ' · acreditación a confirmar' : ' · en cartera') : 'En cartera')
+                     : (c.fechaCobro ? 'Acreditado el ' + fdate(c.fechaCobro) : 'Acreditado'),
+        monto: c.importe
+      });
+    });
+    aparteL.forEach(function (m) {
+      entries.push({ fecha: m.fechaPago, kind: 'credito', detalle: m.forma + ' directa', sub: 'Cancela ' + conceptLabel(m.concepto) + ' · ' + periodo(m), monto: m.importe });
+    });
+    conMonto.forEach(function (m) {
+      var abierto = m.estado !== 'Saldado';
+      entries.push({
+        fecha: m.fechaPago || '', kind: 'debito', abierto: abierto, venc: m.vencimiento,
+        detalle: conceptLabel(m.concepto) + ' · ' + periodo(m),
+        sub: (m.factura ? 'Factura Nº ' + m.factura + (m.iva ? ' · IVA incluido' : '') : 'Sin facturar') + (abierto ? ' · pendiente de cancelar' : (m.fechaPago ? ' · saldado el ' + fdate(m.fechaPago) : ' · saldado')),
+        monto: m.importe
+      });
     });
     entries.sort(function (a, b) {
       var fa = a.fecha || '9999', fb = b.fecha || '9999';
@@ -527,29 +652,30 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
 
   function renderHero(s) {
     var chip, sub;
-    if (s.saldo < 0) { chip = '<span class="chip">A favor de MAD ESTUDIO</span>'; sub = 'Bahioma debe este monto: lo aplicado a la cuenta supera lo cobrado hasta ahora.'; }
+    if (s.saldo < 0) { chip = '<span class="chip">A favor de MAD ESTUDIO</span>'; sub = 'Bahioma debe este monto: lo trasladado supera lo entregado hasta ahora.'; }
     else if (s.saldo > 0) { chip = '<span class="chip">A favor de Bahioma</span>'; sub = 'Crédito disponible para descontar de los próximos vencimientos.'; }
-    else { chip = '<span class="chip">Cuenta al día</span>'; sub = 'Lo cobrado y lo aplicado coinciden.'; }
-    var pendSub = s.pendSinMonto ? (s.pendSinMonto === 1 ? '+ 1 movimiento con monto a definir' : '+ ' + s.pendSinMonto + ' movimientos con monto a definir') : (s.pendientes.length ? plural(s.pendientes.length, 'movimiento', 'movimientos') : 'Sin vencimientos abiertos');
-    var next = s.pendientes.length && s.pendientes[0].vencimiento ? 'Próximo: ' + esc(s.pendientes[0].vencimiento) : '';
-    var cartSub = s.nCartera ? plural(s.nCartera, 'cheque en cartera', 'cheques en cartera') + (s.carteraVencidos ? ' · ' + s.carteraVencidos + ' con fecha de cobro cumplida, a confirmar' : (s.cartera[0] && s.cartera[0].fechaCobro ? ' · próximo cobro ' + fdate(s.cartera[0].fechaCobro) : '')) : 'Sin cheques pendientes de acreditar';
-    var proySub = (s.nCartera || s.pendientes.length) ? 'Si se acreditan los cheques en cartera y se descuentan los pendientes' + (s.pendSinMonto ? ' con monto' : '') : 'Sin cheques ni vencimientos abiertos';
+    else { chip = '<span class="chip">Cuenta al día</span>'; sub = 'Lo entregado y lo trasladado coinciden.'; }
+    var entSub = plural(s.nCheques, 'cheque', 'cheques') + (s.nAparte ? ' + ' + plural(s.nAparte, 'transferencia', 'transferencias') : '') + (s.enCartera ? ' · ' + money(s.enCartera) + ' todavía por acreditar' : '');
+    var traSub = plural(s.nTrasladado, 'movimiento', 'movimientos') + (s.iva ? ' · ' + money(s.iva) + ' de IVA incluido' : '') + (s.nAbiertos ? ' · ' + plural(s.nAbiertos, 'pendiente de cancelar', 'pendientes de cancelar') : '');
+    var facSub = s.nSinFacturar ? plural(s.nSinFacturar, 'movimiento ya en cuenta sin factura emitida', 'movimientos ya en cuenta sin factura emitida') : 'Todo lo trasladado está facturado';
+    var cartSub = s.nCartera ? plural(s.nCartera, 'cheque en cartera', 'cheques en cartera') + (s.carteraVencidos ? ' · ' + s.carteraVencidos + ' con fecha de cobro cumplida, a confirmar' : (s.cartera[0] && s.cartera[0].fechaCobro ? ' · próximo cobro ' + fdate(s.cartera[0].fechaCobro) : '')) + '. Ya cuentan en el saldo.' : 'Todo lo entregado está acreditado';
+    var next = s.sinMonto.length ? s.sinMonto.map(function (m) { return conceptLabel(m.concepto).replace(' (DO)', '') + ' ' + MESES_CAP[m.mes - 1] + (m.vencimiento ? ' (vence ' + m.vencimiento.replace(/^1 al 10 de /, '1-10 ') + ')' : ''); }).join(' · ') : 'Sin vencimientos abiertos sin monto';
     return '<section class="hero" aria-label="Resumen">' +
       '<div class="tile saldo"><span class="eyebrow">Saldo de cuenta corriente</span><span class="v num">' + money(s.saldo) + '</span>' + chip + '<span class="s">' + sub + '</span></div>' +
-      '<div class="tile"><span class="eyebrow">Cobrado a Bahioma</span><span class="v num">' + money(s.cobrado) + '</span><span class="s">' + plural(s.nCobrado, 'cobro acreditado', 'cobros acreditados') + '</span></div>' +
+      '<div class="tile"><span class="eyebrow">Entregado por Bahioma</span><span class="v num">' + money(s.entregado) + '</span><span class="s">' + entSub + '</span></div>' +
+      '<div class="tile"><span class="eyebrow">Trasladado por MAD ESTUDIO</span><span class="v num">' + money(s.trasladado) + '</span><span class="s">' + traSub + '</span></div>' +
       '<div class="tile"><span class="eyebrow">Por acreditar</span><span class="v num">' + money(s.enCartera) + '</span><span class="s">' + cartSub + '</span></div>' +
-      '<div class="tile"><span class="eyebrow">Aplicado a la cuenta</span><span class="v num">' + money(s.aplicadoCC) + '</span><span class="s">' + plural(s.nAplicados, 'movimiento descontado', 'movimientos descontados') + ' del crédito</span></div>' +
-      '<div class="tile"><span class="eyebrow">Pagado aparte</span><span class="v num">' + money(s.pagadoAparte) + '</span><span class="s">' + (s.nAparte ? plural(s.nAparte, 'pago por transferencia o efectivo', 'pagos por transferencia o efectivo') : 'Sin pagos fuera de la cuenta') + '</span></div>' +
-      '<div class="tile"><span class="eyebrow">Pendiente de pago</span><span class="v num">' + (s.pendSum > 0 ? money(s.pendSum) : (s.pendSinMonto ? 'a definir' : money(0))) + '</span><span class="s">' + pendSub + (next ? ' · ' + next : '') + '</span></div>' +
-      '<div class="tile proy"><span class="eyebrow">Saldo proyectado</span><span class="v num">' + money(s.proyectado) + '</span><span class="s">' + proySub + '</span></div>' +
+      '<div class="tile"><span class="eyebrow">Sin facturar</span><span class="v num">' + money(s.sinFacturar) + '</span><span class="s">' + facSub + '</span></div>' +
+      '<div class="tile proy"><span class="eyebrow">A definir</span><span class="v num">' + (s.sinMonto.length ? plural(s.sinMonto.length, 'vencimiento sin monto', 'vencimientos sin monto') : 'Ninguno') + '</span><span class="s">' + esc(next) + '</span></div>' +
       '</section>';
   }
 
   function renderMovimientos(d) {
     var f = state.filter;
     var list = d.movimientos.slice().sort(function (a, b) { return (a.anio - b.anio) || (a.mes - b.mes) || conceptKey(a.concepto).localeCompare(conceptKey(b.concepto)); });
-    if (f === 'pendientes') list = list.filter(function (m) { return m.estado === 'Pendiente'; });
+    if (f === 'pendientes') list = list.filter(function (m) { return m.estado !== 'Saldado'; });
     if (f === 'saldados') list = list.filter(function (m) { return m.estado === 'Saldado'; });
+    if (f === 'sinfacturar') list = list.filter(function (m) { return m.importe != null && !m.factura; });
     var rows = list.map(function (m) {
       var pago = m.estado === 'Saldado' ? esc(formaLabel(m.forma)) + (m.fechaPago ? '<span class="sub">' + fdate(m.fechaPago) + '</span>' : '') : '<span class="muted">—</span>';
       var imp = m.importe == null ? '<span class="muted">a definir</span>' : money(m.importe);
@@ -557,20 +683,20 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
         '<td><b>' + esc(periodo(m)) + '</b></td>' +
         '<td class="w2">' + esc(conceptLabel(m.concepto)) + (m.obs ? '<span class="sub">' + esc(m.obs) + '</span>' : '') + '</td>' +
         '<td class="w2">' + (m.vencimiento ? esc(m.vencimiento) : '<span class="muted">—</span>') + '</td>' +
-        '<td class="r num">' + (m.factura ? 'Nº ' + esc(m.factura) : '<span class="muted">—</span>') + '</td>' +
+        '<td class="r num">' + (m.factura ? 'Nº ' + esc(m.factura) : (m.importe != null ? '<span class="chip crit">Sin facturar</span>' : '<span class="muted">—</span>')) + '</td>' +
         '<td class="r num">' + (m.neto == null ? '<span class="muted">—</span>' : money(m.neto)) + '</td>' +
         '<td class="r num">' + (m.iva == null ? '<span class="muted">—</span>' : money(m.iva)) + '</td>' +
         '<td class="r num amt">' + imp + '</td>' +
         '<td>' + pago + '</td>' +
-        '<td>' + chipEstado(m.estado) + '</td>' +
+        '<td>' + (m.importe == null ? '<span class="chip info">A definir</span>' : chipEstado(m.estado)) + '</td>' +
         '</tr>';
     }).join('');
     var tot = sum(list, function (m) { return m.importe; });
     var totRow = list.length ? '<tr class="total"><td colspan="4">Total ' + (f === 'todos' ? 'de movimientos' : f) + '</td><td class="r num">' + money(sum(list, function (m) { return m.neto; })) + '</td><td class="r num">' + money(sum(list, function (m) { return m.iva; })) + '</td><td class="r num">' + money(tot) + '</td><td colspan="2"></td></tr>' : '';
     var fb = function (key, label) { return '<button type="button" class="fbtn" data-filter="' + key + '" aria-pressed="' + (f === key) + '">' + label + '</button>'; };
     return '<section class="section" aria-labelledby="h-mov">' +
-      '<div class="sec-head"><div><h2 id="h-mov">Movimientos</h2><p class="desc">Lo que MAD ESTUDIO le traslada a Bahioma, mes por mes. Las cargas sociales se pagan del 1 al 10 del mes siguiente.</p></div>' +
-      '<div class="filters" role="group" aria-label="Filtrar">' + fb('todos', 'Todos') + fb('pendientes', 'Pendientes') + fb('saldados', 'Saldados') + '</div></div>' +
+      '<div class="sec-head"><div><h2 id="h-mov">Movimientos</h2><p class="desc">Lo que MAD ESTUDIO le traslada a Bahioma, mes por mes; cada importe entra a la cuenta corriente apenas se carga. Las cargas sociales se pagan del 1 al 10 del mes siguiente. "Sin facturar" marca lo que ya está en cuenta pero todavía no tiene factura emitida.</p></div>' +
+      '<div class="filters" role="group" aria-label="Filtrar">' + fb('todos', 'Todos') + fb('pendientes', 'Pendientes') + fb('saldados', 'Saldados') + fb('sinfacturar', 'Sin facturar') + '</div></div>' +
       '<div class="card"><div class="tbl-wrap"><table><thead><tr><th>Período</th><th>Concepto</th><th>Vencimiento</th><th class="r">Factura</th><th class="r">Neto</th><th class="r">IVA</th><th class="r">Importe</th><th>Pago</th><th>Estado</th></tr></thead>' +
       '<tbody>' + (rows || '<tr><td colspan="9" class="empty">No hay movimientos ' + (f === 'todos' ? 'cargados' : f) + '.</td></tr>') + totRow + '</tbody></table></div></div></section>';
   }
@@ -578,41 +704,28 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
   function renderLedger(s) {
     var rows = s.ledger.map(function (e) {
       return '<tr>' +
-        '<td class="num">' + fdate(e.fecha) + '</td>' +
-        '<td class="wrap"><span class="kind">' + (e.kind === 'credito' ? 'Cobro' : 'Aplicado') + '</span><br>' + esc(e.detalle) + (e.sub ? '<span class="sub">' + esc(e.sub) + '</span>' : '') + '</td>' +
+        '<td class="num">' + (e.fecha ? fdate(e.fecha) : '<span class="muted">' + (e.venc ? esc(e.venc) : '—') + '</span>') + '</td>' +
+        '<td class="wrap"><span class="kind">' + (e.kind === 'credito' ? (e.cartera ? 'Entregado · en cartera' : 'Cobro') : (e.abierto ? 'Trasladado · pendiente' : 'Trasladado')) + '</span><br>' + esc(e.detalle) + (e.sub ? '<span class="sub">' + esc(e.sub) + '</span>' : '') + '</td>' +
         '<td class="r num credit">' + (e.kind === 'credito' ? money(e.monto) : '') + '</td>' +
         '<td class="r num debit">' + (e.kind === 'debito' ? money(e.monto) : '') + '</td>' +
         '<td class="r num bal' + (e.saldo < 0 ? ' neg' : '') + '">' + money(e.saldo) + '</td>' +
         '</tr>';
     }).join('');
-    var hoy = todayISO(), running = s.saldo;
-    var cart = s.cartera.map(function (c) {
-      var vencido = c.fechaCobro && c.fechaCobro <= hoy;
-      running = Math.round((running + c.importe) * 100) / 100;
-      return '<tr class="open">' +
-        '<td class="num muted">' + fdate(c.fechaCobro || c.fecha) + '</td>' +
-        '<td class="wrap"><span class="kind">Por acreditar</span><br>' + esc(c.tipo) + (c.banco ? ' ' + esc(c.banco) : '') + (c.numero ? ' Nº ' + esc(c.numero) : '') + '<span class="sub">' + (vencido ? 'Fecha de cobro cumplida · acreditación a confirmar' : 'Cobra el ' + fdate(c.fechaCobro)) + '</span></td>' +
-        '<td class="r num muted">' + money(c.importe) + '</td>' +
-        '<td></td>' +
-        '<td class="r num muted">' + money(running) + '</td>' +
-        '</tr>';
-    }).join('');
-    var pend = s.pendientes.map(function (m) {
-      if (m.importe != null) running = Math.round((running - m.importe) * 100) / 100;
+    var pend = s.sinMonto.map(function (m) {
       return '<tr class="open">' +
         '<td class="num muted">' + (m.vencimiento ? esc(m.vencimiento) : '—') + '</td>' +
-        '<td class="wrap"><span class="kind">Pendiente</span><br>' + esc(conceptLabel(m.concepto)) + ' · ' + esc(periodo(m)) + (m.obs ? '<span class="sub">' + esc(m.obs) + '</span>' : '') + '</td>' +
+        '<td class="wrap"><span class="kind">A definir</span><br>' + esc(conceptLabel(m.concepto)) + ' · ' + esc(periodo(m)) + '<span class="sub">Entra a la cuenta cuando se cargue el importe</span></td>' +
         '<td></td>' +
-        '<td class="r num muted">' + (m.importe == null ? 'a definir' : money(m.importe)) + '</td>' +
-        '<td class="r num muted">' + (m.importe == null ? '' : money(running)) + '</td>' +
+        '<td class="r num muted">a definir</td>' +
+        '<td></td>' +
         '</tr>';
     }).join('');
     var actual = '<tr class="total"><td colspan="4">Saldo actual de la cuenta corriente</td><td class="r num' + (s.saldo < 0 ? ' neg' : '') + '">' + money(s.saldo) + '</td></tr>';
-    var proy = (cart || pend) ? '<tr class="total"><td colspan="4">Saldo proyectado <span class="muted">(cheques en cartera acreditados y pendientes descontados' + (s.pendSinMonto ? ', sin contar los "a definir"' : '') + ')</span></td><td class="r num' + (s.proyectado < 0 ? ' neg' : '') + '">' + money(s.proyectado) + '</td></tr>' : '';
+    var proy = '';
     return '<section class="section" aria-labelledby="h-cc">' +
-      '<div class="sec-head"><div><h2 id="h-cc">Cuenta corriente</h2><p class="desc">Entra lo cobrado; se descuenta cada movimiento saldado con cuenta corriente. Los pagos por transferencia o efectivo no pasan por acá. En gris, lo que todavía no impacta: cheques por acreditar y vencimientos pendientes.</p></div></div>' +
+      '<div class="sec-head"><div><h2 id="h-cc">Cuenta corriente</h2><p class="desc">Crédito: cada cheque o transferencia que entrega Bahioma (los cheques cuentan desde que se entregan, aunque todavía no estén acreditados). Débito: cada movimiento con importe cargado, con IVA cuando está facturado. En gris, los vencimientos que todavía no tienen monto.</p></div></div>' +
       '<div class="card ledger"><div class="tbl-wrap"><table><thead><tr><th>Fecha</th><th>Detalle</th><th class="r">Crédito</th><th class="r">Débito</th><th class="r">Saldo</th></tr></thead>' +
-      '<tbody>' + (rows || '<tr><td colspan="5" class="empty">Todavía no hay cobros ni movimientos aplicados.</td></tr>') + actual + cart + pend + proy + '</tbody></table></div></div></section>';
+      '<tbody>' + (rows || '<tr><td colspan="5" class="empty">Todavía no hay cobros ni movimientos aplicados.</td></tr>') + actual + pend + '</tbody></table></div></div></section>';
   }
 
   function renderCobros(d) {
@@ -640,6 +753,19 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
     for (var i = 0; i < steps.length; i++) if (v <= steps[i] * p) return steps[i] * p;
     return 10 * p;
   }
+  function renderFacturas(s) {
+    var rows = s.facturas.map(function (f) {
+      return '<tr><td class="num"><b>Nº ' + esc(f.numero) + '</b></td><td class="wrap">' + esc(f.items.join(' · ')) + '</td>' +
+        '<td class="r num">' + money(f.neto) + '</td><td class="r num">' + money(f.iva) + '</td><td class="r num amt">' + money(f.total) + '</td></tr>';
+    }).join('');
+    var tot = s.facturas.length ? '<tr class="total"><td colspan="2">Total facturado</td><td class="r num">' + money(sum(s.facturas, function (f) { return f.neto; })) + '</td><td class="r num">' + money(sum(s.facturas, function (f) { return f.iva; })) + '</td><td class="r num">' + money(sum(s.facturas, function (f) { return f.total; })) + '</td></tr>' : '';
+    var sinf = s.nSinFacturar ? '<tr class="open"><td colspan="2"><span class="kind">Sin facturar</span><br>' + plural(s.nSinFacturar, 'movimiento ya en cuenta', 'movimientos ya en cuenta') + '</td><td></td><td></td><td class="r num muted">' + money(s.sinFacturar) + '</td></tr>' : '';
+    return '<section class="section" aria-labelledby="h-fac">' +
+      '<div class="sec-head"><div><h2 id="h-fac">Facturas emitidas</h2><p class="desc">Comprobantes de MAD ESTUDIO a Bahioma, con el IVA que se suma al importe a pagar.</p></div></div>' +
+      '<div class="card"><div class="tbl-wrap"><table><thead><tr><th>Factura</th><th>Concepto</th><th class="r">Neto</th><th class="r">IVA</th><th class="r">Total</th></tr></thead>' +
+      '<tbody>' + (rows || '<tr><td colspan="5" class="empty">Todavía no hay facturas cargadas.</td></tr>') + tot + sinf + '</tbody></table></div></div></section>';
+  }
+
   function renderChart(s) {
     var data = s.monthly;
     var W = 640, H = 230, padL = 58, padR = 12, padT = 26, padB = 30;
@@ -676,8 +802,8 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
 
   function renderFoot() {
     return '<footer class="foot">' +
-      '<div><h3>Cómo se lee</h3><p>Cada cheque o transferencia que MAD ESTUDIO cobra entra como crédito en la cuenta corriente. Cada movimiento saldado con cuenta corriente se descuenta de ese crédito.</p><p>Saldo positivo: Bahioma tiene plata a favor. Saldo negativo: Bahioma le debe ese monto a MAD ESTUDIO.</p></div>' +
-      '<div><h3>Vencimientos</h3><p>Las cargas sociales se abonan del 1 al 10 del mes siguiente al del servicio. Los honorarios, según lo acordado en cada período.</p><p>Cuando un movimiento se factura, el IVA se suma al importe a pagar.</p></div>' +
+      '<div><h3>Cómo se lee</h3><p>Cada cheque o transferencia que Bahioma entrega es un crédito en la cuenta corriente, desde el momento en que se entrega. Cada movimiento (cargas sociales u honorarios, con IVA cuando está facturado) es un débito apenas se carga su importe.</p><p>Saldo positivo: Bahioma tiene plata a favor. Saldo negativo: Bahioma le debe ese monto a MAD ESTUDIO. Que un cheque esté o no acreditado es un dato de tesorería y se informa aparte.</p></div>' +
+      '<div><h3>Vencimientos</h3><p>Las cargas sociales se abonan del 1 al 10 del mes siguiente al del servicio. Los honorarios, según lo acordado en cada período.</p><p>Cuando un movimiento se factura, el IVA se suma al importe a pagar. Lo marcado "sin facturar" ya está en cuenta y recibirá su factura más adelante.</p></div>' +
       '<div><h3>Datos</h3><p>' + (state.source === 'sheets'
         ? 'Fuente: planilla de MAD ESTUDIO en Google Sheets, leída en vivo al abrir esta página. Esta vista es de solo lectura; para ver cambios recientes, recargá.'
         : 'Fuente: planilla de MAD ESTUDIO (<code>' + esc(XLSX_PATH) + '</code>). Esta vista es de solo lectura; se actualiza cuando MAD ESTUDIO publica una planilla nueva.') +
@@ -705,7 +831,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
     var d = state.data, s = state.sum;
     var warn = state.warnings.length ? '<section class="section" style="margin-top:14px"><div class="card" style="padding:12px 16px;font-size:12.5px;color:var(--warn)"><b>Avisos de la planilla:</b><ul style="margin:6px 0 0;padding-left:18px">' + state.warnings.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul></div></section>' : '';
     app.innerHTML = renderHead(d) + (state.source === 'local' ? warn : '') + renderHero(s) + renderMovimientos(d) + renderLedger(s) +
-      '<div class="two">' + renderCobros(d) + renderChart(s) + '</div>' + renderFoot();
+      '<div class="two">' + renderCobros(d) + renderFacturas(s) + '</div>' + renderChart(s) + renderFoot();
     wire();
   }
 
@@ -808,6 +934,18 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
   function loadSheets(cfg) {
     var hm = cfg.hojaMovimientos || 'Movimientos', hc = cfg.hojaCobros || 'Cobros';
     try {
+      if (cfg.formato === 'original') {
+        /* Una sola pestaña con el formato original de MAD: se lee por gid (0 = primera pestaña). */
+        var id = sheetId(cfg.url);
+        if (!id) throw new Error('El link de Google Sheets en config.js no es válido: tiene que ser el link de la hoja (docs.google.com/spreadsheets/d/…).');
+        var u1 = cfg.csvHoja ? cfg.csvHoja + (cfg.csvHoja.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now()
+          : 'https://docs.google.com/spreadsheets/d/' + id + '/gviz/tq?tqx=out:csv&gid=' + encodeURIComponent(cfg.gid == null ? 0 : cfg.gid) + '&t=' + Date.now();
+        fetchCsv(u1, 'principal').then(function (rows) {
+          if (!isLegacy(rows)) throw new Error('La pestaña no tiene el formato esperado (encabezados "Mes" y "Tipo de cobro").');
+          applyParsed(parseLegacy(rows), 'sheets', new Date());
+        }).catch(fail);
+        return;
+      }
       var uM = sheetCsvUrl(cfg, hm, cfg.csvMovimientos), uC = sheetCsvUrl(cfg, hc, cfg.csvCobros);
     } catch (e) { fail(e); return; }
     Promise.all([fetchCsv(uM, hm), fetchCsv(uC, hc)]).then(function (r) {
